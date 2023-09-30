@@ -34,7 +34,7 @@ namespace Save
         private readonly string _key;
 
         // Adds a json data for being saved to saveRepo list in the SaveManager.
-        public Task Save() 
+        virtual protected Task Save() 
         {
             if (_key == "")
             {
@@ -50,13 +50,13 @@ namespace Save
             }
 
             SaveManager.Instance.AddSavedData(new(_key, data));
-            Debug.Log(_key + " is added repository to be saved.");
+            Debug.Log(_key + " is added to save repository for being saved.");
 
             return Task.CompletedTask;
         }
 
         // Loads releated data in the save json via SaveManager.
-        public Task Load(ref List<SaveData> data) 
+        virtual protected Task Load(ref List<SaveData> data) 
         {
             SaveData saveData = data.FirstOrDefault(x => x.key == _key);
 
@@ -72,11 +72,11 @@ namespace Save
 
         protected ASavable(string key = "", string keyModifier = "") // A key modifier to handle different data for same class's objects.
         {
-            SaveManager.Instance.RegisterSavable(this);
+            SaveManager.Instance.RegisterSavable(this, Save, Load);
             _key = key + (keyModifier == "" ? "" : "_" + keyModifier);
         }
 
-        ~ASavable() { SaveManager.Instance.UnregisterSavable(this); }
+        ~ASavable() { SaveManager.Instance.UnregisterSavable(this, Save, Load); }
 
         public bool Equals(ASavable other)
         {
@@ -89,13 +89,13 @@ namespace Save
 
     public class SaveManager
     {
-        private readonly string _folderPath = Path.Combine(Application.dataPath, "Save");
+        public readonly string _folderPath = Path.Combine(Application.dataPath, "Save");
 
         #region Savable Repository
 
         private List<ASavable> savables = new List<ASavable>();
 
-        public void RegisterSavable(ASavable savable)
+        public void RegisterSavable(ASavable savable, SaveDelegate save, LoadDelegate load)
         {
             if (savables.Contains(savable))
             {
@@ -103,23 +103,32 @@ namespace Save
                 return;
             }
             savables.Add(savable);
+            saveDelegates.Add(save);
+            loadDelegates.Add(load);
         }
-
-        public void UnregisterSavable(ASavable savable) { savables.Remove(savable); }
+        public void UnregisterSavable(ASavable savable, SaveDelegate save, LoadDelegate load) 
+        { 
+            savables.Remove(savable);
+            saveDelegates.Remove(save);
+            loadDelegates.Remove(load);
+        }
 
         #endregion
 
         #region Save
 
-        // while saving, the created data will be kept by this list.
-        private readonly List<SaveData> saveRepo = new();
+        // Delegate for the Save method
+        public delegate Task SaveDelegate();
+
+        // Lists to store the delegates
+        private List<SaveDelegate> saveDelegates = new();
 
         // while saving, the services access the save repo via this function.
-        public void AddSavedData(SaveData data) { lock (saveRepo) { saveRepo.Add(data); } }
+        public void AddSavedData(SaveData data) { lock (_root.dataList) { _root.dataList.Add(data); } }
 
         private async Task SaveAll()
         {
-            var loadTasks = savables.Select(m => m.Save());
+            var loadTasks = saveDelegates.Select(s => s.Invoke());
             await Task.WhenAll(loadTasks);
         }
 
@@ -128,15 +137,15 @@ namespace Save
             await SaveAll();
 
             // -------- Create Json Data --------
-            string jsonString = "{ \"dataList\": ["; // Start of JSON array
+            string jsonString = JsonUtility.ToJson(_root);
+            _root.dataList.Clear(); // Clear the save list for future use.
 
-            for (int i = 0; i < saveRepo.Count; i++)
+            // -------- Create Folder --------
+            if (!Directory.Exists(_folderPath))
             {
-                jsonString += JsonUtility.ToJson(saveRepo[i]);
-                if (i < saveRepo.Count - 1) jsonString += ",";
+                Directory.CreateDirectory(_folderPath);
+                Debug.Log($"Folder '{_folderPath}' has been created.");
             }
-            jsonString += "] }"; // End of JSON array
-            saveRepo.Clear(); // Clear the save list for future use.
 
             // -------- File --------
             string fileName = saveName + ".json";
@@ -148,13 +157,17 @@ namespace Save
 
         #region Load
 
+        // Delegate for the Load method
+        public delegate Task LoadDelegate(ref List<SaveData> data);
+
+        private List<LoadDelegate> loadDelegates = new();
+
         private async Task LoadAll(List<SaveData> data)
         {
-            var loadTasks = savables.Select(m => m.Load(ref data));
+            var loadTasks = loadDelegates.Select(l => l.Invoke(ref data));
             await Task.WhenAll(loadTasks);
         }
 
-        private class RootObject { public List<SaveData> dataList; } // requires for reading json.
         public async void LoadSaveFile(string saveName)
         {
             string fileName = saveName + ".json";
@@ -177,23 +190,24 @@ namespace Save
             if (Instance != null) return;
             Instance = this;
 
-            if (!Directory.Exists(_folderPath))
-            {
-                Directory.CreateDirectory(_folderPath);
-                Debug.Log($"Folder '{_folderPath}' has been created.");
-            }
-
             // Temporary
             TestSavable test = new TestSavable();
             TestSavable test1 = new TestSavable(keyModifier: "1");
             TestSavable test2 = new TestSavable(keyModifier: "2");
-            LoadSaveFile("TestSave");
             //
         }
         ~SaveManager() 
         {
             savables.Clear();
-            saveRepo.Clear();
+            _root.dataList.Clear();
         }
+
+        private class RootObject // requires for reading json.
+        {
+            // while saving, the created data will be kept by this list.
+            public List<SaveData> dataList = new();
+        }
+
+        private readonly RootObject _root = new();
     }
 }

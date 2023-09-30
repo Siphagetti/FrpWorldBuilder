@@ -6,16 +6,16 @@ namespace Services
 {
     public class ServiceManager
     {
+        public ServiceManager Instance { get; private set; }
         private Dictionary<Type, IBaseService> _services = new Dictionary<Type, IBaseService>();
 
         public ServiceManager()
         {
-            AddService<ICharacterService>(new CharacterService());
-            AddService<IDiceService>(new DiceService());
-            AddService<IFightService>(new TurnBasedFightService());
-            AddService<IMusicService>(new MusicService());
-            AddService<ISheetService>(new SheetService());
-            AddService<IWorldBuildingService>(new WorldBuildingService());
+            if (Instance != null) return;
+            Instance = this;
+
+            // Default services
+            AddService<IWorldService>(new WorldService());
         }
 
         public void AddService<T>(T service) where T : IBaseService
