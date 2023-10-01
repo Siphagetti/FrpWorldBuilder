@@ -6,15 +6,88 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace World.Save
+namespace World
 {
+
+    [Serializable]
+    public struct SerializableQuaternion
+    {
+        public float x;
+        public float y;
+        public float z;
+        public float w;
+
+        public SerializableQuaternion(Quaternion quaternion)
+        {
+            x = quaternion.x;
+            y = quaternion.y;
+            z = quaternion.z;
+            w = quaternion.w;
+        }
+
+        public Quaternion ToQuaternion()
+        {
+            return new Quaternion(x, y, z, w);
+        }
+
+        // Overload the assignment operator (=) to assign from Quaternion
+    public static implicit operator SerializableQuaternion(Quaternion q)
+    {
+        return new SerializableQuaternion(q);
+    }
+
+    // Overload the assignment operator (=) to assign to Quaternion
+    public static implicit operator Quaternion(SerializableQuaternion sq)
+    {
+        return sq.ToQuaternion();
+    }
+    }
+
+    [Serializable]
+    public struct SerializableVector3
+    {
+        public float x;
+        public float y;
+        public float z;
+
+        public SerializableVector3(Vector3 vector)
+        {
+            x = vector.x;
+            y = vector.y;
+            z = vector.z;
+        }
+
+        public Vector3 ToVector3()
+        {
+            return new Vector3(x, y, z);
+        }
+
+        // Overload the assignment operator (=) to assign from Vector3
+        public static implicit operator SerializableVector3(Vector3 v)
+        {
+            return new SerializableVector3(v);
+        }
+
+        // Overload the assignment operator (=) to assign to Vector3
+        public static implicit operator Vector3(SerializableVector3 sv)
+        {
+            return sv.ToVector3();
+        }
+    }
+
+    [Serializable]
+    public struct SerializableTransform
+    {
+        public SerializableVector3 position;
+        public SerializableQuaternion rotation;
+        public SerializableVector3 scale;
+    }
+
     [Serializable]
     struct GameObjectData
     {
         public string assetPath;
-        public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 scale;
+        public SerializableTransform transform;
     }
 
     class GameObjectsData
@@ -29,7 +102,7 @@ namespace World.Save
         public string dataFile;
     }
 
-    class WorldsData : ASavable
+    class WorldsData : SavableObject
     {
         [NonSerialized]
         private readonly string _folderPath = Path.Combine(SaveManager.Instance._folderPath, "Worlds");
@@ -90,12 +163,12 @@ namespace World.Save
     }
 }
 
-namespace Services
+namespace World
 {
     // Keeps the world and controls builder and game session.
     public class WorldService : IWorldService
     {
-        private readonly World.Save.WorldsData worldsData = new();
+        private readonly WorldsData worldsData = new();
 
         public WorldService()
         {
@@ -109,15 +182,19 @@ namespace Services
             worldsData.gameObjects.Add(new()
             {
                 assetPath = "asdfasd",
-                position = new Vector3(0,0, 0),
-                rotation = new Quaternion(0,0,0,0),
-                scale = new Vector3(1,1,1),
+                transform = new()
+                {
+                    position = new Vector3(0, 0, 0),
+                    rotation = new Quaternion(0, 0, 0, 0),
+                    scale = new Vector3(1, 1, 1),
+                }
             });
             SaveManager.Instance.CreateSaveFile("TestSave");
             //SaveManager.Instance.LoadSaveFile("TestSave");
             //Debug.Log(worldsData.gameObjects[0].assetPath);
             // ------------------------
         }
+
         #region WorldManagement
 
         public Response CreateNewWorld(string worldName)
@@ -125,7 +202,7 @@ namespace Services
             if (WorldExists(worldName)) return new Response { Success = false };
 
             SceneManager.CreateScene(worldName);
-            SceneManager.LoadScene(worldName);
+            SceneManager.LoadSceneAsync(worldName);
             worldsData.worlds.Add(new()
             {
                 name = worldName,
@@ -139,7 +216,7 @@ namespace Services
         {
             if (!WorldExists(worldName)) return new Response { Success = false };
 
-            SceneManager.LoadScene(worldName);
+            SceneManager.LoadSceneAsync(worldName);
             worldsData.LoadWorld(worldName);
 
             return new Response { Success = true };

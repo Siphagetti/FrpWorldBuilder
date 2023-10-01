@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Services
+namespace World
 {
-    internal interface IWorldService : IBaseService
+    internal interface IWorldService : Services.IBaseService
     {
         public Response CreateNewWorld(string worldName);
         public Response ChangeWorld(string worldName);

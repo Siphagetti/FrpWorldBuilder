@@ -12,6 +12,10 @@ public class GameManager : MonoBehaviour
 
         new SaveManager(); // Initialize Save Manager singleton.
         new ServiceManager(); // Initialize services.
+
+        // Temporary
+        //ServiceManager.Instance.GetService<Prefab.IPrefabService>().SavePrefab("D:\\TestMesh.obj", "Characters");
+        //ServiceManager.Instance.GetService<Prefab.IPrefabService>().LoadPrefab("TestMesh", "Characters");
     }
 
     public static GameManager Instance { get; private set; } = null;

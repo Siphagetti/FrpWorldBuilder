@@ -6,7 +6,7 @@ namespace Services
 {
     public class ServiceManager
     {
-        public ServiceManager Instance { get; private set; }
+        public static ServiceManager Instance { get; private set; }
         private Dictionary<Type, IBaseService> _services = new Dictionary<Type, IBaseService>();
 
         public ServiceManager()
@@ -15,7 +15,8 @@ namespace Services
             Instance = this;
 
             // Default services
-            AddService<IWorldService>(new WorldService());
+            AddService<World.IWorldService>(new World.WorldService());
+            AddService<Prefab.IPrefabService>(new Prefab.PrefabService());
         }
 
         public void AddService<T>(T service) where T : IBaseService
