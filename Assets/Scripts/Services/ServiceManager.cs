@@ -17,6 +17,7 @@ namespace Services
             // Default services
             AddService<World.IWorldService>(new World.WorldService());
             AddService<Prefab.IPrefabService>(new Prefab.PrefabService());
+            AddService<Language.ILanguageService>(new Language.LanguageService());
         }
 
         public void AddService<T>(T service) where T : IBaseService
@@ -27,7 +28,6 @@ namespace Services
                 return;
             }
             _services.Add(typeof(T), service);
-            Debug.Log(typeof(T) + " added to service");
         }
 
         public T GetService<T>() where T : IBaseService

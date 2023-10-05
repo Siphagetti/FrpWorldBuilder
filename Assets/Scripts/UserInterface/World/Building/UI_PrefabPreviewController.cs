@@ -4,9 +4,9 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace World
+namespace UserInterface.World.Building
 {
-    internal class PrefabPreviewController : MonoBehaviour
+    internal class UI_PrefabPreviewController : MonoBehaviour
     {
         void Start()
         {
@@ -35,6 +35,8 @@ namespace World
         {
             foreach (string prefabPath in prefabPaths)
                 yield return CreatePrefabPreview(prefabPath);
+
+            Destroy(gameObject);
         }
 
         private IEnumerator CreatePrefabPreview(string prefabPath)
@@ -48,7 +50,6 @@ namespace World
 
             yield return StartCoroutine(PrepareImage(prefab, prefabPreview.transform.GetChild(0).GetComponent<RawImage>()));
         }
-
 
         // Displays prefab on the incoming rawimage
         private IEnumerator PrepareImage(GameObject prefab, RawImage image)

@@ -1,8 +1,6 @@
 ﻿using SFB;
 using System.IO;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Prefab
 {
@@ -13,45 +11,26 @@ namespace Prefab
         // Copies the .obj file into Resources folder.
         public void ImportPrefab()
         {
-            string[] importDirs = StandaloneFileBrowser.OpenFolderPanel("Choose Asset Folder", "", false);
-            if (importDirs == null || importDirs.Length == 0) return;
+            string[] sourceDirs = StandaloneFileBrowser.OpenFolderPanel("Choose Asset Folder", "", false);
+            if (sourceDirs == null || sourceDirs.Length == 0) return;
 
-            string importDir = importDirs[0];
-
-            if (!Directory.Exists(destFolder)) Directory.CreateDirectory(destFolder);
-            
-            string importDirName = Path.GetFileName(importDir);
-            string destPath = Path.Combine(destFolder, importDirName);
-
-            Directory.CreateDirectory(destPath);
-
-            // Copy Files
-            foreach (string filePath in Directory.GetFiles(importDir))
-            {
-                string fileName = Path.GetFileName(filePath);
-                string destFilePath = Path.Combine(destPath, fileName);
-                File.Copy(filePath, destFilePath);
-            }
-
-
-        }
-
-        public PrefabService()
-        {
-            // Temporary
-            ImportPrefab();
+            CopyFolder(sourceDirs[0], destFolder);
         }
 
         // ------------ Helpers ------------
         private void CopyFolder(string sourcePath, string destinationPath)
         {
             if (!Directory.Exists(destinationPath))
-            {
                 Directory.CreateDirectory(destinationPath);
-            }
 
-            string dirName = Path.GetDirectoryName(sourcePath);
+            string dirName = Path.GetFileName(sourcePath);
             string destFolder = Path.Combine(destinationPath, dirName);
+
+            if (Directory.Exists(destFolder))
+            {
+                Debug.LogError("A folder named as " + Path.GetFileName(destFolder) + " already exists");
+                return;
+            }
 
             Directory.CreateDirectory(destFolder);
 

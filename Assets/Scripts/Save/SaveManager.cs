@@ -19,7 +19,7 @@ namespace Save
         {
             if (savables.Contains(savable))
             {
-                UnityEngine.Debug.Log(savable + " is already registered!");
+                Debug.Log(savable + " is already registered!");
                 return;
             }
             savables.Add(savable);
@@ -52,7 +52,7 @@ namespace Save
             await Task.WhenAll(loadTasks);
         }
 
-        public async void CreateSaveFile(string saveName)
+        public async void Save(string saveName)
         {
             await SaveAll();
 
@@ -88,7 +88,7 @@ namespace Save
             await Task.WhenAll(loadTasks);
         }
 
-        public async void LoadSaveFile(string saveName)
+        public async void Load(string saveName)
         {
             string fileName = saveName + ".json";
             string filePath = Path.Combine(_folderPath, fileName);
@@ -101,8 +101,6 @@ namespace Save
                 await LoadAll(root.dataList);
             } else Debug.LogError("No file named " + saveName);
         }
-
-        
 
         #endregion
 
