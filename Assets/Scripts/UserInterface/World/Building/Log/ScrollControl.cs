@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace UserInterface.Helpers
+namespace UserInterface.World.Building.Log
 {
     public class ScrollControl : MonoBehaviour
     {

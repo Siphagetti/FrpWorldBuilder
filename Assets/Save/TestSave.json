@@ -1,12 +1,1 @@
-{
-  "dataList": [
-    {
-      "key": "Worlds",
-      "data": "{\"currentWorldName\":\"daasfa\",\"worlds\":[{\"name\":\"daasfa\",\"dataFile\":\"daasfa.json\"}]}"
-    },
-    {
-      "key": "LanguagePref",
-      "data": "{\"language\":\"TR\"}"
-    }
-  ]
-}
+{"dataList":[{"key":"LanguagePref","data":"{\"language\":\"EN\"}"},{"key":"Worlds","data":"{\"currentWorldName\":\"\",\"worlds\":[]}"}]}

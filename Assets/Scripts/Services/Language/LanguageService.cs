@@ -54,6 +54,7 @@ namespace Language
         }
 
         public void Subscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange += languageChangeAction;
+        public void Unsubscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange -= languageChangeAction; 
 
         public void ChangeLanguage(Language language)
         {
@@ -68,6 +69,8 @@ namespace Language
             LoadLocalizedStrings();
             return Task.CompletedTask;
         }
+
+
         public LanguageService() : base(key: "LanguagePref") { }
     }
 }

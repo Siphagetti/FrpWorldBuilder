@@ -13,22 +13,12 @@ namespace Save
         // Adds a json data for being saved to saveRepo list in the SaveManager.
         virtual protected Task Save()
         {
-            if (_key == "")
-            {
-                Debug.LogError(this + " has empty id for saving!");
-                return Task.CompletedTask;
-            }
+            if (_key == "") return Task.CompletedTask;
 
             string data = JsonUtility.ToJson(this);
-            if (data == "")
-            {
-                Debug.LogError(this + " has empty data to save!");
-                return Task.CompletedTask;
-            }
+            if (data == "") return Task.CompletedTask;
 
             SaveManager.Instance.AddSavedData(new(_key, data));
-            Debug.Log(_key + " is added to save repository for being saved.");
-
             return Task.CompletedTask;
         }
 
@@ -37,12 +27,8 @@ namespace Save
         {
             SaveData saveData = data.FirstOrDefault(x => x.key == _key);
 
-            if (EqualityComparer<SaveData>.Default.Equals(saveData, default))
-            {
-                Debug.LogError(_key + " has no saved data!");
-                return Task.CompletedTask;
-            }
-
+            if (EqualityComparer<SaveData>.Default.Equals(saveData, default)) return Task.CompletedTask;
+            
             JsonUtility.FromJsonOverwrite(saveData.data, this);
             return Task.CompletedTask;
         }

@@ -3,22 +3,23 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace UserInterface.Helpers
+namespace UserInterface.World.Building.Log
 {
-    internal class LogTimer : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    internal class LogTimer : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] private Slider _slider;
 
         // It will begin to disappear after given seconds
-        [SerializeField] private float _disappearTime = 5f;
+        private static float _disappearTime = 3f;
 
         // It will disappear in given seconds
-        [SerializeField] private float _fadeDuration = 2f;
+        private static float _fadeDuration = 1f;
 
-        private bool _timerWait = false;
+        private static TimerStopper _timerStopper;
 
         private void Start()
         {
+            if (_timerStopper == null) _timerStopper = transform.parent.GetComponent<TimerStopper>();
             StartCoroutine(Countdown());
         }
 
@@ -28,7 +29,7 @@ namespace UserInterface.Helpers
 
             while (timer < _disappearTime)
             {
-                yield return new WaitUntil(() => _timerWait == false);
+                yield return new WaitUntil(() => _timerStopper.TimerWait == false);
 
                 timer += Time.deltaTime;
                 _slider.value = timer / _disappearTime;
@@ -52,8 +53,6 @@ namespace UserInterface.Helpers
 
             Destroy(gameObject);
         }
-
-        public void OnPointerEnter(PointerEventData eventData) { _timerWait = true; }
-        public void OnPointerExit(PointerEventData eventData) { _timerWait = false; }
+        public void OnPointerClick(PointerEventData eventData) { Destroy(gameObject); }
     }
 }

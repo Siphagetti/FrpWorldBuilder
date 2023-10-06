@@ -6,39 +6,39 @@ namespace Services
 {
     public class ServiceManager
     {
-        public static ServiceManager Instance { get; private set; }
+        private static ServiceManager _instance;
         private Dictionary<Type, IBaseService> _services = new Dictionary<Type, IBaseService>();
 
         public ServiceManager()
         {
-            if (Instance != null) return;
-            Instance = this;
+            if (_instance != null) return;
+            _instance = this;
 
             // Default services
-            AddService<World.IWorldService>(new World.WorldService());
-            AddService<Prefab.IPrefabService>(new Prefab.PrefabService());
-            AddService<Language.ILanguageService>(new Language.LanguageService());
+            AddService<Asset.IAseetService>         (new Asset.AssetService());
+            AddService<Language.ILanguageService>   (new Language.LanguageService());
+            AddService<World.IWorldService>         (new World.WorldService());
         }
 
-        public void AddService<T>(T service) where T : IBaseService
+        public static void AddService<T>(T service) where T : IBaseService
         {
-            if (_services.ContainsKey(service.GetType()))
+            if (_instance._services.ContainsKey(service.GetType()))
             {
                 Debug.LogError("Service Manager already has a services with type of " + service.GetType());
                 return;
             }
-            _services.Add(typeof(T), service);
+            _instance._services.Add(typeof(T), service);
         }
 
-        public T GetService<T>() where T : IBaseService
+        public static T GetService<T>() where T : IBaseService
         {
-            if (_services.TryGetValue(typeof(T), out var service)) return (T)service;
+            if (_instance._services.TryGetValue(typeof(T), out var service)) return (T)service;
             return default;
         }
 
-        public void UpdateService<T>(T service) where T : IBaseService
+        public static void UpdateService<T>(T service) where T : IBaseService
         {
-            if (_services.ContainsKey(typeof(T))) _services[typeof(T)] = service;
+            if (_instance._services.ContainsKey(typeof(T))) _instance._services[typeof(T)] = service;
         }
 
         public IEnumerable<IBaseService> GetAll() { return _services.Values; }

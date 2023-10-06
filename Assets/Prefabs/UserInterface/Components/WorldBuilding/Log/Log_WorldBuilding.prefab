@@ -269,11 +269,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1470808016580014995}
   - component: {fileID: 8655105055953569734}
-  - component: {fileID: 5526767995252723137}
   - component: {fileID: 8128462868158461530}
   - component: {fileID: 1987017958695650673}
+  - component: {fileID: 8032559153465535564}
   m_Layer: 5
-  m_Name: Prefab_Log_WorldBuilding
+  m_Name: Log_WorldBuilding
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -308,21 +308,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6420094635648596471}
   m_CullTransparentMesh: 1
---- !u!114 &5526767995252723137
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6420094635648596471}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef7b9739ef2bab24594da3b2f84f6d7c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _slider: {fileID: 2954787205056318318}
-  _disappearTime: 2
-  _fadeDuration: 1
 --- !u!114 &8128462868158461530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,6 +350,21 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &8032559153465535564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6420094635648596471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621f97447a5e3954cb28e31a5c26a16a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _slider: {fileID: 2954787205056318318}
+  _disappearTime: 3
+  _fadeDuration: 1
 --- !u!1 &8332645818501623082
 GameObject:
   m_ObjectHideFlags: 0

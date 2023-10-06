@@ -8,7 +8,7 @@ namespace World
 {
     internal interface IWorldService : Services.IBaseService
     {
-        public Response CreateNewWorld(string worldName);
-        public Response ChangeWorld(string worldName);
+        public void CreateNewWorld(string worldName);
+        public void ChangeWorld(string worldName);
     }
 }

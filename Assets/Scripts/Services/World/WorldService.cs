@@ -72,11 +72,7 @@ namespace World
             gameObjects.Clear(); // Clear the save list for future use.
 
             // -------- Create Folder --------
-            if (!Directory.Exists(_folderPath))
-            {
-                Directory.CreateDirectory(_folderPath);
-                Debug.Log($"Folder '{_folderPath}' has been created.");
-            }
+            if (!Directory.Exists(_folderPath)) Directory.CreateDirectory(_folderPath);
 
             // -------- Create File --------
             string fileName = worldName + ".json";
@@ -84,7 +80,7 @@ namespace World
             File.WriteAllText(filePath, jsonString);
         }
 
-        public Response LoadWorld(string worldName)
+        public void LoadWorld(string worldName)
         {
             /*
                 If the given world name's json file exists loads its data.
@@ -98,9 +94,7 @@ namespace World
                 string jsonString = File.ReadAllText(filePath);
                 GameObjectsData gameObjectsData = JsonUtility.FromJson<GameObjectsData>(jsonString);
                 gameObjects = gameObjectsData.gameObjects;
-                return new Response() { Success = true };
             }
-            return new Response() { Success = false };
         }
 
         protected override Task Save()
@@ -126,9 +120,9 @@ namespace World
 
         #region WorldManagement
 
-        public Response CreateNewWorld(string worldName)
+        public void CreateNewWorld(string worldName)
         {
-            if (WorldExists(worldName)) return new Response { Success = false };
+            if (WorldExists(worldName)) Log.Logger.Log_Fatal("world_exists", worldName);
 
             SceneManager.CreateScene(worldName);
             SceneManager.LoadSceneAsync(worldName);
@@ -138,17 +132,13 @@ namespace World
                 dataFile = worldName + ".json"
             });
             worldsData.SaveWorld(worldName);
-
-            return new Response { Success = true };
         }
-        public Response ChangeWorld(string worldName)
+        public void ChangeWorld(string worldName)
         {
-            if (!WorldExists(worldName)) return new Response { Success = false };
+            if (!WorldExists(worldName)) Log.Logger.Log_Fatal("world_not_found", worldName);
 
             SceneManager.LoadSceneAsync(worldName);
             worldsData.LoadWorld(worldName);
-
-            return new Response { Success = true };
         }
         
         #endregion

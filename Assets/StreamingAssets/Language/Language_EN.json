@@ -3,6 +3,30 @@
     {
       "key": "test_message",
       "text": "Test Message"
+    },
+    {
+      "key": "folder_exists",
+      "text": "A folder named as {0} already exists!"
+    },
+    {
+      "key": "folder_imported",
+      "text": "Folder imported successfully!"
+    },
+    {
+      "key": "world_exits",
+      "text": "World named as {0} already exists!"
+    },
+    {
+      "key": "world_not_found",
+      "text": "World named as {0} not found!"
+    },
+    {
+      "key": "folder_created",
+      "text": "Folder {0} has been created."
+    },
+    {
+      "key": "save_success",
+      "text": "Saved successfully!"
     }
   ]
 }

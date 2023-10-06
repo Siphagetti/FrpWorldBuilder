@@ -7,52 +7,56 @@ namespace Log
 {
     public class Logger
     {
-        public static Logger Instance { get; private set; }
+        private static Logger _instance;
 
         private ILoggerUI[] loggerUIs;
         public Logger()
         {
-            if (Instance != null) return;
-            Instance = this;
+            if (_instance != null) return;
+            _instance = this;
 
             loggerUIs = Object.FindObjectsOfType<MonoBehaviour>().OfType<ILoggerUI>().ToArray();
         }
 
-        public void Log_Track(string key)
+        public static void Log_Track(string key, params object[] args)
         {
             string text = GetText(key);
-            foreach (var loggerUI in loggerUIs) loggerUI.Log_Track(text);
+            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Track(text);
         }
 
-        public void Log_Info(string key)
+        public static void Log_Info(string key, params object[] args)
         {
             string text = GetText(key);
-            foreach (var loggerUI in loggerUIs) loggerUI.Log_Info(text);
+            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Info(text);
         }
 
-        public void Log_Warning(string key)
+        public static void Log_Warning(string key, params object[] args)
         {
             string text = GetText(key);
-            foreach (var loggerUI in loggerUIs) loggerUI.Log_Warning(text);
+            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Warning(text);
         }
 
-        public void Log_Error(string key)
+        public static void Log_Error(string key, params object[] args)
         {
             string text = GetText(key);
-            foreach (var loggerUI in loggerUIs) loggerUI.Log_Error(text);
+            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Error(text);
         }
 
-        public void Log_Fatal(string key)
+        public static void Log_Fatal(string key, params object[] args)
         {
             string text = GetText(key);
-            foreach (var loggerUI in loggerUIs) loggerUI.Log_Fatal(text);
+            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Fatal(text);
         }
 
 
         // -------------------- Helpers --------------------
 
         // Takes a key to return a text in current language
-        private string GetText(string key) => ServiceManager.Instance.GetService<ILanguageService>().GetLocalizedValue(key);
+        private static string GetText(string key, params object[] args)
+        {
+            var msg = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key);
+            return string.Format(msg, args);
+        }
     }
 }
 

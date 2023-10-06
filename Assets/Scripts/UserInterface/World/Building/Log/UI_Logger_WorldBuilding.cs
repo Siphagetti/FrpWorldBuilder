@@ -1,9 +1,10 @@
-﻿using TMPro;
+﻿using Log;
+using TMPro;
 using UnityEngine;
 
-namespace UserInterface.World.Building
+namespace UserInterface.World.Building.Log
 {
-    public class UI_Logger_WorldBuilding : MonoBehaviour, Log.ILoggerUI
+    public class UI_Logger_WorldBuilding : MonoBehaviour, ILoggerUI
     {
         [SerializeField] private Transform _logContainer;
         [SerializeField] private GameObject _logPrefab;
@@ -16,6 +17,8 @@ namespace UserInterface.World.Building
 
         public void Log_Track(string text)
         {
+            if (!gameObject.activeSelf) return;
+
             TMP_Text _text = GetText();
             _text.text = text;
             _text.color = trackTextColor;
@@ -23,6 +26,8 @@ namespace UserInterface.World.Building
 
         public void Log_Info(string text)
         {
+            if (!gameObject.activeSelf) return;
+
             TMP_Text _text = GetText();
             _text.text = text;
             _text.color = infoTextColor;
@@ -30,6 +35,8 @@ namespace UserInterface.World.Building
 
         public void Log_Warning(string text)
         {
+            if (!gameObject.activeSelf) return;
+
             TMP_Text _text = GetText();
             _text.text = text;
             _text.color = warningTextColor;
@@ -37,6 +44,8 @@ namespace UserInterface.World.Building
 
         public void Log_Error(string text)
         {
+            if (!gameObject.activeSelf) return;
+
             TMP_Text _text = GetText();
             _text.text = text;
             _text.color = errorTextColor;
@@ -44,6 +53,8 @@ namespace UserInterface.World.Building
 
         public void Log_Fatal(string text)
         {
+            if (!gameObject.activeSelf) return;
+
             TMP_Text _text = GetText();
             _text.text = text;
             _text.color = fatalTextColor;

@@ -6,6 +6,7 @@
     internal interface ILanguageService : Services.IBaseService
     {
         public void Subscribe(LanguageChangeAction languageChangeAction);
+        public void Unsubscribe(LanguageChangeAction languageChangeAction);
 
         public string GetLocalizedValue(string key);
 

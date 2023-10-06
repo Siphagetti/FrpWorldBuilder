@@ -17,8 +17,10 @@ public class GameManager : MonoBehaviour
 
         // Temporary
         SaveManager.Instance.Load("TestSave");
-        Log.Logger.Instance.Log_Track("test_message");
-        //
+    }
+    private void Start()
+    {
+        SaveManager.Instance.Save("TestSave");
     }
 
     public static GameManager Instance { get; private set; } = null;

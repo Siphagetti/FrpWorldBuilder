@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -17,11 +16,8 @@ namespace Save
 
         public void RegisterSavable(SavableObject savable, SaveDelegate save, LoadDelegate load)
         {
-            if (savables.Contains(savable))
-            {
-                Debug.Log(savable + " is already registered!");
-                return;
-            }
+            if (savables.Contains(savable)) return;
+            
             savables.Add(savable);
             saveDelegates.Add(save);
             loadDelegates.Add(load);
@@ -61,16 +57,13 @@ namespace Save
             _root.dataList.Clear(); // Clear the save list for future use.
 
             // -------- Create Folder --------
-            if (!Directory.Exists(_folderPath))
-            {
-                Directory.CreateDirectory(_folderPath);
-                Debug.Log($"Folder '{_folderPath}' has been created.");
-            }
+            if (!Directory.Exists(_folderPath)) Directory.CreateDirectory(_folderPath);
 
             // -------- File --------
             string fileName = saveName + ".json";
             string filePath = Path.Combine(_folderPath, fileName);
             File.WriteAllText(filePath, jsonString);
+            Log.Logger.Log_Info("save_success");
         }
 
         #endregion
@@ -99,7 +92,7 @@ namespace Save
 
                 RootObject root = JsonUtility.FromJson<RootObject>(jsonString);
                 await LoadAll(root.dataList);
-            } else Debug.LogError("No file named " + saveName);
+            }
         }
 
         #endregion
