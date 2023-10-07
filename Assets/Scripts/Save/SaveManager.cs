@@ -10,6 +10,8 @@ namespace Save
     {
         public readonly string _folderPath = Path.Combine(Application.dataPath, "Save");
 
+        private string _currentSaveFileName = "Save.json";
+
         #region Savable Repository
 
         private List<SavableObject> savables = new List<SavableObject>();
@@ -48,7 +50,7 @@ namespace Save
             await Task.WhenAll(loadTasks);
         }
 
-        public async void Save(string saveName)
+        public async void Save(string saveName = "")
         {
             await SaveAll();
 
@@ -60,8 +62,7 @@ namespace Save
             if (!Directory.Exists(_folderPath)) Directory.CreateDirectory(_folderPath);
 
             // -------- File --------
-            string fileName = saveName + ".json";
-            string filePath = Path.Combine(_folderPath, fileName);
+            string filePath = Path.Combine(_folderPath, _currentSaveFileName = saveName == "" ? _currentSaveFileName : saveName + ".json");
             File.WriteAllText(filePath, jsonString);
             Log.Logger.Log_Info("save_success");
         }
@@ -81,9 +82,11 @@ namespace Save
             await Task.WhenAll(loadTasks);
         }
 
-        public async void Load(string saveName)
+        public async void Load(string saveName = "")
         {
             string fileName = saveName + ".json";
+            _currentSaveFileName = saveName == "" ? _currentSaveFileName : fileName;
+
             string filePath = Path.Combine(_folderPath, fileName);
             
             if (File.Exists(filePath))

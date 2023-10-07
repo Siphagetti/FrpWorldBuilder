@@ -29,7 +29,7 @@ namespace Language
     }
 
 
-    internal class LanguageService : Save.SavableObject, ILanguageService
+    internal class LanguageService : SavableObject, ILanguageService
     {
         private readonly string _folderPath = Path.Combine(Application.streamingAssetsPath, "Language");
 
@@ -37,7 +37,8 @@ namespace Language
 
         private LanguagePackage _languagePackage;
 
-        public string language = Language.EN.ToString();
+        [SerializeField]
+        private string language = Language.TR.ToString();
 
         private void LoadLocalizedStrings()
         {

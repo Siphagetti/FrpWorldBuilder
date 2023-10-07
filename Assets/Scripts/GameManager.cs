@@ -15,8 +15,10 @@ public class GameManager : MonoBehaviour
         new SaveManager(); // Initialize Save Manager.
         new ServiceManager(); // Initialize services.
 
+
         // Temporary
         SaveManager.Instance.Load("TestSave");
+
     }
     private void Start()
     {

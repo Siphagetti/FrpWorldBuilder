@@ -6,29 +6,43 @@ using UnityEngine;
 
 namespace Asset
 {
+    // Keeps the created categories' folder paths relative to 'AssetService._folderPath'
+    class AssetCategories : Save.SavableObject
+    {
+        public List<string> categoryFolderRelativePaths = new();
+
+        public AssetCategories() : base(key: "Categories") { }
+    }
+
     internal class AssetService : IAseetService
     {
-        public static readonly string _folderPath = Path.Combine(Path.Combine(Application.dataPath, "Resources"), "Assets");
+        private static readonly string _subfolderName = "Assets";
+        public static readonly string _folderPath = Path.Combine(Path.Combine(Application.dataPath, "Resources"), _subfolderName);
 
-        public List<GameObject> GetPrefabsInFolder(string folderPath)
+        private AssetCategories assetCategories = new();
+
+        public List<GameObject> GetPrefabsInFolder(string relativeFolderPath)
         {
             /*
                 Loads files that can be GameObject first.
-                Then, look subfolders for the files that can be GameObject.
+                Then, search subfolders for the files that can be GameObject to load them.
+
+                * relativeFolderPath is relative to '_folderPath', so does not contain '_subfolderName'
             */
 
             List<GameObject> list = new();
 
-            LoadPrefabs(folderPath);
+            string folderPath = Path.Combine(_folderPath, relativeFolderPath);
 
-            foreach (var subfolder in Directory.GetDirectories(folderPath)) LoadPrefabs(subfolder);
+            LoadPrefabs(folderPath);
+            foreach (var subfolderPath in Directory.GetDirectories(folderPath)) LoadPrefabs(subfolderPath);
 
             return list;
 
             void LoadPrefabs(string folderPath)
             {
-                string[] objFiles = Directory.GetFiles(folderPath, "*.obj").Select(f => f.Replace(".obj", "")).ToArray();
-                string[] fbxFiles = Directory.GetFiles(folderPath, "*.fbx").Select(f => f.Replace(".fbx", "")).ToArray();
+                var objFiles = Directory.GetFiles(folderPath, "*.obj").Select(f => f.Replace(".obj", ""));
+                var fbxFiles = Directory.GetFiles(folderPath, "*.fbx").Select(f => f.Replace(".fbx", ""));
 
                 foreach (string file in objFiles)
                 {
@@ -44,13 +58,21 @@ namespace Asset
             }
         }
 
-        public void CreateFolder(string destPath)
+        public bool CreateCategoryFolder(string destPath)
         {
-            if (Directory.Exists(destPath)) { Log.Logger.Log_Fatal("folder_exists", Path.GetFileName(destPath)); return; }
+            destPath = Path.Combine(_folderPath, destPath);
+
+            if (Directory.Exists(destPath)) { Log.Logger.Log_Fatal("folder_exists", Path.GetFileName(destPath)); return false; }
 
             Directory.CreateDirectory(destPath);
-            Log.Logger.Log_Info("folder_created", Path.GetFileName(destPath));
+            AddCategoryFolderPath(destPath);
+
+            Save.SaveManager.Instance.Save();
+            return true;
         }
+
+        private void AddCategoryFolderPath(string path) => assetCategories.categoryFolderRelativePaths.Add(GetRelativePath(path).Replace(_subfolderName + Path.DirectorySeparatorChar, ""));
+        public List<string> GetAllCategoryFolderPaths() => new(assetCategories.categoryFolderRelativePaths);
 
         public void ImportFolder(string destPath)
         {
@@ -92,6 +114,6 @@ namespace Asset
         }
 
         // Return relative path for Resources folder.
-        private string GetRelativePath(string path) => Path.Combine("Assets", path.Replace(_folderPath + Path.DirectorySeparatorChar, ""));
+        private string GetRelativePath(string path) => Path.Combine(_subfolderName, path.Replace(_folderPath + Path.DirectorySeparatorChar, ""));
     }
 }

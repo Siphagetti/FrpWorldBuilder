@@ -12,7 +12,7 @@ namespace World
     struct GameObjectData
     {
         /*
-            Keeps the game object's data in the world. 
+            Keeps the game object's transform data. 
 
             When user add a gameobject to the world, a new 'GameObjectData' is created to be saved.
         */
@@ -61,7 +61,7 @@ namespace World
         public string currentWorldName;
         public List<WorldData> worlds = new();
 
-        public void SaveWorld(string worldName)
+        public void SaveWorld()
         {
             /*
                 Saves currently opened world's data to its own json file.
@@ -75,18 +75,18 @@ namespace World
             if (!Directory.Exists(_folderPath)) Directory.CreateDirectory(_folderPath);
 
             // -------- Create File --------
-            string fileName = worldName + ".json";
+            string fileName = currentWorldName + ".json";
             string filePath = Path.Combine(_folderPath, fileName);
             File.WriteAllText(filePath, jsonString);
         }
 
-        public void LoadWorld(string worldName)
+        public void LoadWorld()
         {
             /*
                 If the given world name's json file exists loads its data.
             */
 
-            string fileName = worldName + ".json";
+            string fileName = currentWorldName + ".json";
             string filePath = Path.Combine(_folderPath, fileName);
 
             if (File.Exists(filePath))
@@ -100,14 +100,14 @@ namespace World
         protected override Task Save()
         {
             base.Save();
-            SaveWorld(currentWorldName);
+            SaveWorld();
             return Task.CompletedTask;
         }
 
         protected override Task Load(ref List<SaveData> data)
         {
             base.Load(ref data);
-            LoadWorld(currentWorldName);
+            LoadWorld();
             return Task.CompletedTask;
         }
         public WorldsData() : base(key: "Worlds") { }
@@ -131,16 +131,17 @@ namespace World
                 name = worldName,
                 dataFile = worldName + ".json"
             });
-            worldsData.SaveWorld(worldName);
         }
         public void ChangeWorld(string worldName)
         {
             if (!WorldExists(worldName)) Log.Logger.Log_Fatal("world_not_found", worldName);
 
             SceneManager.LoadSceneAsync(worldName);
-            worldsData.LoadWorld(worldName);
         }
         
+        public void SaveWorld() => worldsData.SaveWorld();
+        public void LoadWorld() => worldsData.LoadWorld();
+
         #endregion
 
         #region Helper Functions

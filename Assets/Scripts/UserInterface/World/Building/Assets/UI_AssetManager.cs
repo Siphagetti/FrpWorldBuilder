@@ -1,48 +1,78 @@
-﻿using System.Collections;
+﻿using Asset;
+using Services;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UserInterface.World.Building
+namespace UserInterface.World.Building.Asset
 {
     internal class UI_AssetManager : MonoBehaviour
     {
-        // A prefab for UI for displaying prefabs that can be placed in the world.
-        [SerializeField] private GameObject _prefabImage; // It has a RawImage and a Display Name
+        #region Category
 
-        [SerializeField] private GameObject _assetDisplayViewPort;
-
-        private static UI_AssetManager _instance;
-
-        private void Awake()
+        public void CreateNewCategory(string categoryName)
         {
-            if (_instance != null) Destroy(this);
-            _instance = this;
+            bool isFolderCreateSuccess = _assetService.CreateCategoryFolder(categoryName);
+
+            if (!isFolderCreateSuccess) return;
+            
+            CreateContent(categoryName);
         }
 
-        // When category is changed, then content should be changed.
-        public static void SetAssetDisplayContent(GameObject content)
+
+        [SerializeField] private string _prefabCategory;
+
+        #endregion
+
+
+        #region Asset Display
+
+        #region Content
+
+        private async void CreateContents()
         {
-            content.transform.parent = _instance._assetDisplayViewPort.transform;
-            _instance._assetDisplayViewPort.transform.parent.GetComponent<ScrollRect>().content = content.GetComponent<RectTransform>();
+            var categoryFolderPaths = _assetService.GetAllCategoryFolderPaths();
+
+            IEnumerable<Task> tasks = new List<Task>();
+
+            foreach (var path in categoryFolderPaths) ((List<Task>)tasks).Add(CreateContent(path));
+
+            await Task.WhenAll(tasks);
         }
+
+        private Task CreateContent(string ownerFolder)
+        {
+            GameObject newContent = Instantiate(_prefabContent, _assetDisplayViewPort.transform);
+            _assetDisplayContents.Add(ownerFolder, newContent);
+
+            // Get prefabs those will be shown in the new created content.
+            var prefabs = _assetService.GetPrefabsInFolder(ownerFolder);
+
+            // Create Images of the prefabs.
+            StartCoroutine(CreateImages(prefabs, newContent.transform));
+            return Task.CompletedTask;
+        }
+
+        #endregion
 
         #region Image
 
         // Creates prefabs' images. You need to create an empty List<GameObject> and send it as images to get images.
-        public static IEnumerator CreateImages(List<GameObject> prefabs, List<GameObject> images)
+        private IEnumerator CreateImages(List<GameObject> prefabs, Transform content)
         {
             if (prefabs != null)
             {
-                Camera camera = _instance.CreateCamera();
+                Camera camera = CreateCamera();
 
                 foreach (var prefab in prefabs)
                 {
                     // Instantiate the prefab
                     GameObject instantiatedPrefab = Instantiate(prefab);
 
-                    GameObject image = Instantiate(_instance._prefabImage);
-                    images.Add(image);
+                    GameObject image = Instantiate(_prefabImage);
+                    image.transform.parent = content;
 
                     // Calculate the desired size
                     float distanceToCamera = Vector3.Distance(instantiatedPrefab.transform.position, camera.transform.position);
@@ -56,7 +86,7 @@ namespace UserInterface.World.Building
                     image.GetComponentInChildren<RawImage>().texture = renderTexture;
 
                     // Calculate the original size of the prefab (you may need a custom function)
-                    float originalSizeOfPrefab = _instance.CalculateOriginalSize(prefab);
+                    float originalSizeOfPrefab = CalculateOriginalSize(prefab);
 
                     // Calculate the scale factor
                     float scaleFactor = desiredSize / originalSizeOfPrefab;
@@ -65,7 +95,7 @@ namespace UserInterface.World.Building
                     instantiatedPrefab.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
                     // Calculate the offset due to the pivot and adjust the position
-                    Vector3 pivotOffset = _instance.CalculatePivotOffset(prefab, scaleFactor);
+                    Vector3 pivotOffset = CalculatePivotOffset(prefab, scaleFactor);
                     instantiatedPrefab.transform.position -= pivotOffset;
 
                     // Add padding around the prefab
@@ -106,7 +136,7 @@ namespace UserInterface.World.Building
 
             // Set the position of the camera at some distance from the prefab
             camera.transform.position = new Vector3(0f, 0f, -10f); // Example: -10 units along the Z-axis
-            camera.transform.parent = _instance.transform;
+            camera.transform.parent = transform;
 
             return camera;
         }
@@ -153,5 +183,38 @@ namespace UserInterface.World.Building
         }
 
         #endregion
+
+
+        #region Asset Display Params
+
+        // Scroll rect for image contents.
+        [SerializeField] private ScrollRect _assetPreviewScrollRect;
+
+        // Content container viewport.
+        [SerializeField] private GameObject _assetDisplayViewPort;
+
+        // A prefab for UI for displaying prefabs that can be placed in the world.
+        [SerializeField] private GameObject _prefabImage; // It has a RawImage and a Display Name
+
+        // A prefab for keeps created Images.
+        [SerializeField] private GameObject _prefabContent;
+
+        // Keeps contents by their owner folder.
+        private Dictionary<string, GameObject> _assetDisplayContents = new();
+
+        private string _lastActiveContent = "";
+
+        #endregion
+
+        #endregion
+
+        private IAseetService _assetService;
+
+        private void Start()
+        {
+            _assetService = ServiceManager.GetService<IAseetService>();
+
+            CreateContents();
+        }
     }
 }
