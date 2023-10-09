@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     }
     private void Start()
     {
+        // Temporary
         SaveManager.Instance.Save("TestSave");
     }
 

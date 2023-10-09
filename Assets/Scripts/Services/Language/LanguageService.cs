@@ -38,7 +38,7 @@ namespace Language
         private LanguagePackage _languagePackage;
 
         [SerializeField]
-        private string language = Language.TR.ToString();
+        private string language = Language.EN.ToString();
 
         private void LoadLocalizedStrings()
         {

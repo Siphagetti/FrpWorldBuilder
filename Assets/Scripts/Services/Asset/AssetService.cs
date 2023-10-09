@@ -34,6 +34,8 @@ namespace Asset
 
             string folderPath = Path.Combine(_folderPath, relativeFolderPath);
 
+            if(!Directory.Exists(folderPath)) { Log.Logger.Log_Error("category_folder_not_found", relativeFolderPath); return null; }
+
             LoadPrefabs(folderPath);
             foreach (var subfolderPath in Directory.GetDirectories(folderPath)) LoadPrefabs(subfolderPath);
 
@@ -58,31 +60,36 @@ namespace Asset
             }
         }
 
-        public bool CreateCategoryFolder(string destPath)
+        public bool CreateCategoryFolder(string relativeFolderPath)
         {
-            destPath = Path.Combine(_folderPath, destPath);
+            var destFolder = Path.Combine(_folderPath, relativeFolderPath);
 
-            if (Directory.Exists(destPath)) { Log.Logger.Log_Fatal("folder_exists", Path.GetFileName(destPath)); return false; }
+            if (Directory.Exists(destFolder)) { Log.Logger.Log_Fatal("folder_exists", Path.GetFileName(destFolder)); return false; }
 
-            Directory.CreateDirectory(destPath);
-            AddCategoryFolderPath(destPath);
+            Directory.CreateDirectory(destFolder);
+            assetCategories.categoryFolderRelativePaths.Add(relativeFolderPath);
 
             Save.SaveManager.Instance.Save();
             return true;
         }
 
-        private void AddCategoryFolderPath(string path) => assetCategories.categoryFolderRelativePaths.Add(GetRelativePath(path).Replace(_subfolderName + Path.DirectorySeparatorChar, ""));
-        public List<string> GetAllCategoryFolderPaths() => new(assetCategories.categoryFolderRelativePaths);
-
-        public void ImportFolder(string destPath)
+        public bool ImportFolder(string relativeFolderPath)
         {
             string[] sourceDirs = StandaloneFileBrowser.OpenFolderPanel("Choose Asset Folder", "", false);
-            if (sourceDirs == null || sourceDirs.Length == 0) return;
+            if (sourceDirs == null || sourceDirs.Length == 0) return false;
+
+            string destPath = Path.Combine(_folderPath, relativeFolderPath);
+            if (!Directory.Exists(destPath))
+            {
+                Directory.CreateDirectory(destPath);
+                if (!assetCategories.categoryFolderRelativePaths.Contains(relativeFolderPath))
+                     assetCategories.categoryFolderRelativePaths.Add(relativeFolderPath);
+            }
 
             CopyFolder(sourceDirs[0], destPath);
             Log.Logger.Log_Info("folder_imported");
+            return true;
         }
-
 
         // ------------ Helpers ------------
         private void CopyFolder(string sourcePath, string destinationPath)
@@ -115,5 +122,6 @@ namespace Asset
 
         // Return relative path for Resources folder.
         private string GetRelativePath(string path) => Path.Combine(_subfolderName, path.Replace(_folderPath + Path.DirectorySeparatorChar, ""));
+        public List<string> GetAllCategories() => new(assetCategories.categoryFolderRelativePaths);
     }
 }

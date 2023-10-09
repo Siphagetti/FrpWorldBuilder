@@ -2,6 +2,7 @@
 using Services;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,43 +13,88 @@ namespace UserInterface.World.Building.Asset
     {
         #region Category
 
-        public void CreateNewCategory(string categoryName)
+        public void ChangeCategory(string category)
         {
-            bool isFolderCreateSuccess = _assetService.CreateCategoryFolder(categoryName);
+            // Check the category exists.
+            if (!_thumbnailContentDict.ContainsKey(category)) { global::Log.Logger.Log_Error("category_not_exists", category); return; }
 
-            if (!isFolderCreateSuccess) return;
-            
-            CreateContent(categoryName);
+            // Disappear previous active thumbnail content.
+            _thumbnailContentDict[_activeCategory].SetActive(false);
+
+            // Update active category
+            _thumbnailContentDict[category].SetActive(true);
+            _activeCategory = category;
+
+            // Set scroll rect's content as current category content
+            _thumbnailScrollRect.content = _thumbnailContentDict[category].GetComponent<RectTransform>();
         }
 
+        public void CreateNewCategory(string categoryName)
+        {
+            // Try to create new folder for the new category.
+            bool isFolderCreateSuccess = _assetService.CreateCategoryFolder(categoryName);
+            if (!isFolderCreateSuccess) { global::Log.Logger.Log_Error("category_exists", categoryName); return; }
 
-        [SerializeField] private string _prefabCategory;
+            CreateCategory(categoryName);
+
+            // Create new content for the new category.
+            GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailViewport);
+
+            // Keep the new created content in the '_thumbnailContentDict'
+            _thumbnailContentDict.Add(categoryName, newContent);
+        }
+
+        private void CreateCategory(string category)
+        {
+            var category_btn = Instantiate(_prefabCategory, _categoryContent);
+            category_btn.GetComponentInChildren<TMPro.TMP_Text>().text = category;
+            category_btn.GetComponent<Button>().onClick.AddListener(() => ChangeCategory(category));
+        }
+
+        [Header("Category Parameters")]
+
+        [SerializeField] private Transform _categoryContent;
+        [SerializeField] private GameObject _prefabCategory;
+
+        private string _activeCategory = "";
 
         #endregion
 
 
-        #region Asset Display
+        #region Thumbnail
 
         #region Content
 
-        private async void CreateContents()
+        public void AddAssetToContent(string category)
         {
-            var categoryFolderPaths = _assetService.GetAllCategoryFolderPaths();
+            bool isImported = _assetService.ImportFolder(category);
 
-            IEnumerable<Task> tasks = new List<Task>();
-
-            foreach (var path in categoryFolderPaths) ((List<Task>)tasks).Add(CreateContent(path));
-
-            await Task.WhenAll(tasks);
-        }
-
-        private Task CreateContent(string ownerFolder)
-        {
-            GameObject newContent = Instantiate(_prefabContent, _assetDisplayViewPort.transform);
-            _assetDisplayContents.Add(ownerFolder, newContent);
+            if (!isImported) return;
 
             // Get prefabs those will be shown in the new created content.
-            var prefabs = _assetService.GetPrefabsInFolder(ownerFolder);
+            var prefabs = _assetService.GetPrefabsInFolder(category);
+
+            // Get category content
+            var categoryContent = _thumbnailContentDict[category];
+
+            // Create Images of the prefabs.
+            StartCoroutine(CreateImages(prefabs, categoryContent.transform));
+        }
+
+        private Task CreateContent(string category)
+        {
+            /*
+                Creates a content that keeps thumbnails of 3D assets for the category.
+            */
+
+            GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailViewport);
+            newContent.SetActive(false);
+
+            _thumbnailContentDict.Add(category, newContent);
+
+            // Get prefabs those will be shown in the new created content.
+            var prefabs = _assetService.GetPrefabsInFolder(category);
+            if (prefabs == null) return Task.CompletedTask;
 
             // Create Images of the prefabs.
             StartCoroutine(CreateImages(prefabs, newContent.transform));
@@ -71,10 +117,11 @@ namespace UserInterface.World.Building.Asset
                     // Instantiate the prefab
                     GameObject instantiatedPrefab = Instantiate(prefab);
 
-                    GameObject image = Instantiate(_prefabImage);
-                    image.transform.parent = content;
+                    GameObject image = Instantiate(_prefabThumbnail);
+                    image.transform.SetParent(content);
+                    image.transform.localScale = Vector3.one;
 
-                    // Calculate the desired size
+                    // Calculate the desired size for prefab
                     float distanceToCamera = Vector3.Distance(instantiatedPrefab.transform.position, camera.transform.position);
                     float desiredSize = Mathf.Tan(Mathf.Deg2Rad * camera.fieldOfView / 2f) * distanceToCamera * 2f * camera.aspect;
 
@@ -185,24 +232,24 @@ namespace UserInterface.World.Building.Asset
         #endregion
 
 
-        #region Asset Display Params
+        #region Thumbnail Params
 
+        [Header("Thumbnail Parameters")]
+        
         // Scroll rect for image contents.
-        [SerializeField] private ScrollRect _assetPreviewScrollRect;
+        [SerializeField] private ScrollRect _thumbnailScrollRect;
 
         // Content container viewport.
-        [SerializeField] private GameObject _assetDisplayViewPort;
+        [SerializeField] private Transform _thumbnailViewport;
 
         // A prefab for UI for displaying prefabs that can be placed in the world.
-        [SerializeField] private GameObject _prefabImage; // It has a RawImage and a Display Name
+        [SerializeField] private GameObject _prefabThumbnail; // It has a RawImage and a Display Name
 
         // A prefab for keeps created Images.
-        [SerializeField] private GameObject _prefabContent;
+        [SerializeField] private GameObject _prefabThumbnailContent;
 
         // Keeps contents by their owner folder.
-        private Dictionary<string, GameObject> _assetDisplayContents = new();
-
-        private string _lastActiveContent = "";
+        private Dictionary<string, GameObject> _thumbnailContentDict = new();
 
         #endregion
 
@@ -210,11 +257,30 @@ namespace UserInterface.World.Building.Asset
 
         private IAseetService _assetService;
 
+        private async void Initialize()
+        {
+            var categories = _assetService.GetAllCategories();
+            IEnumerable<Task> tasks = new List<Task>();
+
+            foreach (var category in categories)
+            {
+                CreateCategory(category);
+                ((List<Task>)tasks).Add(CreateContent(category));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
         private void Start()
         {
             _assetService = ServiceManager.GetService<IAseetService>();
+            Initialize();
 
-            CreateContents();
+            if (_thumbnailContentDict.Count == 0) return;
+
+            _activeCategory = _thumbnailContentDict.Keys.ToList()[0];
+
+            ChangeCategory(_activeCategory);
         }
     }
 }

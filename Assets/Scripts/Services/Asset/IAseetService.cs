@@ -10,8 +10,8 @@ namespace Asset
     internal interface IAseetService : Services.IBaseService
     {
         public bool CreateCategoryFolder(string destPath);
-        public void ImportFolder(string destPath);
+        public bool ImportFolder(string destPath);
         public List<GameObject> GetPrefabsInFolder(string folderPath);
-        public List<string> GetAllCategoryFolderPaths();
+        public List<string> GetAllCategories();
     }
 }
