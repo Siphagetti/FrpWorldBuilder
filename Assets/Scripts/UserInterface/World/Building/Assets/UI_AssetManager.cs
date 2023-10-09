@@ -4,7 +4,6 @@ using Services;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,11 +31,21 @@ namespace UserInterface.World.Building.Asset
 
         public void CreateNewCategory()
         {
-            // Create input field to get new category name
-            var inputField = Instantiate(_newCategoryInputField, _categoryContent).GetComponent<TMPro.TMP_InputField>();
+            // Instantiate the input field and set its parent
+            var inputField = Instantiate(_newCategoryInputField, _categoryScrollRect.content).GetComponent<TMPro.TMP_InputField>();
+
+            _categoryScrollRect.verticalNormalizedPosition = 1f;
+
+            // Set as top of the list
+            inputField.transform.SetAsFirstSibling();
+
+            // Select and activate the input field
             inputField.Select();
             inputField.ActivateInputField();
+
+            // Add a listener to the input field's OnEndEdit event
             inputField.onEndEdit.AddListener(OnEndEdit);
+
 
             void OnEndEdit(string categoryName)
             {
@@ -51,7 +60,7 @@ namespace UserInterface.World.Building.Asset
                 CreateCategory(categoryName);
 
                 // Create new content for the new category.
-                GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailViewport);
+                GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailScrollRect.viewport);
 
                 // Keep the new created content in the '_thumbnailContentDict'
                 _thumbnailContentDict.Add(categoryName, newContent);
@@ -61,14 +70,14 @@ namespace UserInterface.World.Building.Asset
 
         private void CreateCategory(string category)
         {
-            var category_btn = Instantiate(_prefabCategory, _categoryContent);
+            var category_btn = Instantiate(_prefabCategory, _categoryScrollRect.content);
             category_btn.GetComponentInChildren<TMPro.TMP_Text>().text = category;
             category_btn.GetComponent<Button>().onClick.AddListener(() => ChangeCategory(category));
         }
 
         [Header("Category Parameters")]
 
-        [SerializeField] private Transform _categoryContent;
+        [SerializeField] private ScrollRect _categoryScrollRect;
         [SerializeField] private GameObject _prefabCategory;
         [SerializeField] private Button _addCategoryButton;
         [SerializeField] private GameObject _newCategoryInputField;
@@ -82,40 +91,72 @@ namespace UserInterface.World.Building.Asset
 
         #region Content
 
-        public void AddAssetToContent(string category)
+
+        // --------------- Timer UI might be added ---------------
+
+        public void AddAssetToContent()
         {
-            bool isImported = _assetService.ImportFolder(category);
+            // Let user import folder, then get the destination path.
+            var importedFolderPath = _assetService.ImportFolder(_activeCategory);
+            if (importedFolderPath == null) return;
 
-            if (!isImported) return;
+            // Needed to wait until unity loads the incoming assets.
+            StartCoroutine(LoadImportedPrefabs());
 
-            // Get prefabs those will be shown in the new created content.
-            var prefabs = _assetService.GetPrefabsInFolder(category);
+            IEnumerator LoadImportedPrefabs()
+            {
+                /*
+                    Until '_assetService.GetPrefabsInFolder()' function returns not null prefabs 
+                    try again every second. 
+                    
+                    If exceeds time limit then break.
+                */
 
-            // Get category content
-            var categoryContent = _thumbnailContentDict[category];
+                List<GameObject> prefabs = new();
+                int timer = 0;
 
-            // Create Images of the prefabs.
-            StartCoroutine(CreateImages(prefabs, categoryContent.transform));
+                while(true)
+                {
+                    prefabs = _assetService.GetPrefabsInFolder(importedFolderPath);
+
+                    if (prefabs.Count > 0 && prefabs[0] != null) break;
+
+                    yield return new WaitForSeconds(1);
+                    
+                    if (++timer > 20) 
+                    {
+                        global::Log.Logger.Log_Fatal("import_error");
+                        yield break;
+                    }
+                }
+
+                // Get category content
+                var categoryContent = _thumbnailContentDict[_activeCategory];
+
+                global::Log.Logger.Log_Info("folder_imported");
+
+                // Create Images of the prefabs.
+                StartCoroutine(CreateImages(prefabs, categoryContent.transform));
+            }
         }
 
-        private Task CreateContent(string category)
+        private IEnumerator CreateContent(string category)
         {
             /*
                 Creates a content that keeps thumbnails of 3D assets for the category.
             */
 
-            GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailViewport);
+            GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailScrollRect.viewport);
             newContent.SetActive(false);
 
             _thumbnailContentDict.Add(category, newContent);
 
             // Get prefabs those will be shown in the new created content.
             var prefabs = _assetService.GetPrefabsInFolder(category);
-            if (prefabs == null) return Task.CompletedTask;
+            if (prefabs == null) yield break;
 
             // Create Images of the prefabs.
-            StartCoroutine(CreateImages(prefabs, newContent.transform));
-            return Task.CompletedTask;
+            yield return StartCoroutine(CreateImages(prefabs, newContent.transform));
         }
 
         #endregion
@@ -256,9 +297,6 @@ namespace UserInterface.World.Building.Asset
         // Scroll rect for image contents.
         [SerializeField] private ScrollRect _thumbnailScrollRect;
 
-        // Content container viewport.
-        [SerializeField] private Transform _thumbnailViewport;
-
         // A prefab for UI for displaying prefabs that can be placed in the world.
         [SerializeField] private GameObject _prefabThumbnail; // It has a RawImage and a Display Name
 
@@ -274,17 +312,19 @@ namespace UserInterface.World.Building.Asset
 
         private IAseetService _assetService;
 
-        private async void Initialize()
+        [SerializeField] private Button _importButton;
+        private IEnumerator Initialize()
         {
             var categories = _assetService.GetAllCategories();
-            IEnumerable<Task> tasks = new List<Task>();
+
+            List<IEnumerator> coroutines = new();
 
             foreach (var category in new List<string>(categories))
             {
                 if(_assetService.CategoryFolderExists(category))
                 {
                     CreateCategory(category);
-                    ((List<Task>)tasks).Add(CreateContent(category));
+                    coroutines.Add(CreateContent(category));
                     continue;
                 }
 
@@ -292,22 +332,30 @@ namespace UserInterface.World.Building.Asset
                 _assetService.RemoveCategoryFolder(category);
             }
 
-            await Task.WhenAll(tasks);
+            if(coroutines.Count == 0) yield break;
 
-            if (_thumbnailContentDict.Count == 0) return;
+            // Begin initialize the first content.
+            yield return StartCoroutine(coroutines[0]);
 
+            // Set the initial content as the first content that initialized
             _activeCategory = _thumbnailContentDict.Keys.ToList()[0];
-
             ChangeCategory(_activeCategory);
 
-            _addCategoryButton.onClick.AddListener(CreateNewCategory);
+            // Initialize the rest of the contents
+            for (int i = 1; i < coroutines.Count; i++)
+            {
+                yield return StartCoroutine(coroutines[i]);
+            }
         }
 
         private void Start()
         {
             _assetService = ServiceManager.GetService<IAseetService>();
 
-            Initialize();
+            _addCategoryButton.onClick.AddListener(CreateNewCategory);
+            _importButton.onClick.AddListener(AddAssetToContent);
+
+            StartCoroutine(Initialize());
 
             // Temporary
             SaveManager.Instance.Save("TestSave");

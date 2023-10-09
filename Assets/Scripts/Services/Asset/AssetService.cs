@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using UnityEditor.Build.Content;
 using UnityEngine;
 
 namespace Asset
@@ -16,6 +18,12 @@ namespace Asset
 
     internal class AssetService : IAseetService
     {
+        private readonly List<string> supportedFileTypes = new()
+        {
+            ".obj",
+            ".fbx"
+        };
+
         private static readonly string _subfolderName = "Assets";
         public static readonly string _folderPath = Path.Combine(Path.Combine(Application.dataPath, "Resources"), _subfolderName);
 
@@ -36,28 +44,10 @@ namespace Asset
 
             if(!Directory.Exists(folderPath)) { Log.Logger.Log_Error("category_folder_not_found", relativeFolderPath); return null; }
 
-            LoadPrefabs(folderPath);
-            foreach (var subfolderPath in Directory.GetDirectories(folderPath)) LoadPrefabs(subfolderPath);
+            LoadPrefabs(folderPath, ref list);
+            foreach (var subfolderPath in Directory.GetDirectories(folderPath)) LoadPrefabs(subfolderPath, ref list);
 
             return list;
-
-            void LoadPrefabs(string folderPath)
-            {
-                var objFiles = Directory.GetFiles(folderPath, "*.obj").Select(f => f.Replace(".obj", ""));
-                var fbxFiles = Directory.GetFiles(folderPath, "*.fbx").Select(f => f.Replace(".fbx", ""));
-
-                foreach (string file in objFiles)
-                {
-                    GameObject prefab = Resources.Load<GameObject>(GetRelativePath(file));
-                    list.Add(prefab);
-                }
-
-                foreach (string file in fbxFiles)
-                {
-                    GameObject prefab = Resources.Load<GameObject>(GetRelativePath(file));
-                    list.Add(prefab);
-                }
-            }
         }
 
         public bool CreateCategoryFolder(string relativeFolderPath)
@@ -73,22 +63,19 @@ namespace Asset
             return true;
         }
 
-        public bool ImportFolder(string relativeFolderPath)
+        public string ImportFolder(string relativeFolderPath)
         {
+            // Let user choose import folder then get its path
             string[] sourceDirs = StandaloneFileBrowser.OpenFolderPanel("Choose Asset Folder", "", false);
-            if (sourceDirs == null || sourceDirs.Length == 0) return false;
+            if (sourceDirs == null || sourceDirs.Length == 0) return null;
 
+            // Set the destination path
             string destPath = Path.Combine(_folderPath, relativeFolderPath);
-            if (!Directory.Exists(destPath))
-            {
-                Directory.CreateDirectory(destPath);
-                if (!assetCategories.categoryFolderRelativePaths.Contains(relativeFolderPath))
-                     assetCategories.categoryFolderRelativePaths.Add(relativeFolderPath);
-            }
 
+            // Copy the selected folder to the destination asynchronously
             CopyFolder(sourceDirs[0], destPath);
-            Log.Logger.Log_Info("folder_imported");
-            return true;
+
+            return destPath;
         }
 
         public bool CategoryFolderExists(string category)
@@ -98,6 +85,20 @@ namespace Asset
         }
 
         // ------------ Helpers ------------
+
+        private void LoadPrefabs(string folderPath, ref List<GameObject> list)
+        {
+            foreach (var fileType in supportedFileTypes)
+            {
+                var files = Directory.GetFiles(folderPath, "*" + fileType).Select(f => f.Replace(fileType, ""));
+                foreach (string file in files)
+                {
+                    GameObject prefab = Resources.Load<GameObject>(GetRelativePath(file));
+                    list.Add(prefab);
+                }
+            }
+        }
+
         private void CopyFolder(string sourcePath, string destinationPath)
         {
             if (!Directory.Exists(destinationPath)) Directory.CreateDirectory(destinationPath);

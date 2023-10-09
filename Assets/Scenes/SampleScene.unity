@@ -486,8 +486,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1456427577}
-  - {fileID: 333686786}
   - {fileID: 2034821797}
+  - {fileID: 333686786}
   m_Father: {fileID: 881551757}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -515,12 +515,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0895267d664d04e9753f32d89b8593, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _categoryContent: {fileID: 1297161848}
+  _categoryScrollRect: {fileID: 2034821798}
   _prefabCategory: {fileID: 1127631284097948487, guid: 8cc96201c69eb9b40a64b6c06606f6b4, type: 3}
   _addCategoryButton: {fileID: 1175696698}
   _newCategoryInputField: {fileID: 5440349323137899354, guid: 3e73314515920014185f41c8ed928211, type: 3}
   _thumbnailScrollRect: {fileID: 333686787}
-  _thumbnailViewport: {fileID: 1326941770}
   _prefabThumbnail: {fileID: 802350606504951043, guid: e9bf3b47cf9cb6546bcca9452aba98e3, type: 3}
   _prefabThumbnailContent: {fileID: 6818694197674508732, guid: a520e2c4caf487a45883f520ce7174cd, type: 3}
 --- !u!1 &853684842
@@ -1090,7 +1089,7 @@ MonoBehaviour:
     m_Left: 5
     m_Right: 5
     m_Top: 5
-    m_Bottom: 0
+    m_Bottom: 5
   m_ChildAlignment: 1
   m_Spacing: 3
   m_ChildForceExpandWidth: 1
