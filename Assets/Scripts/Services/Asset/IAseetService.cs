@@ -13,5 +13,7 @@ namespace Asset
         public bool ImportFolder(string destPath);
         public List<GameObject> GetPrefabsInFolder(string folderPath);
         public List<string> GetAllCategories();
+        public bool CategoryFolderExists(string category);
+        public void RemoveCategoryFolder(string category);
     }
 }

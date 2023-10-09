@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // Temporary
-        SaveManager.Instance.Save("TestSave");
+        // SaveManager.Instance.Save("TestSave");
     }
 
     public static GameManager Instance { get; private set; } = null;

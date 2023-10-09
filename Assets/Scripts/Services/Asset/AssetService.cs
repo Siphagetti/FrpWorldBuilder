@@ -91,6 +91,12 @@ namespace Asset
             return true;
         }
 
+        public bool CategoryFolderExists(string category)
+        {
+            var destFolder = Path.Combine(_folderPath, category);
+            return Directory.Exists(destFolder);
+        }
+
         // ------------ Helpers ------------
         private void CopyFolder(string sourcePath, string destinationPath)
         {
@@ -123,5 +129,6 @@ namespace Asset
         // Return relative path for Resources folder.
         private string GetRelativePath(string path) => Path.Combine(_subfolderName, path.Replace(_folderPath + Path.DirectorySeparatorChar, ""));
         public List<string> GetAllCategories() => new(assetCategories.categoryFolderRelativePaths);
+        public void RemoveCategoryFolder(string category) => assetCategories.categoryFolderRelativePaths.Remove(category);
     }
 }

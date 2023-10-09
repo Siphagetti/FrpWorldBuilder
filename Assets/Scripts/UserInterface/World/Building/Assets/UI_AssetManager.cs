@@ -1,4 +1,5 @@
 ﻿using Asset;
+using Save;
 using Services;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,19 +30,33 @@ namespace UserInterface.World.Building.Asset
             _thumbnailScrollRect.content = _thumbnailContentDict[category].GetComponent<RectTransform>();
         }
 
-        public void CreateNewCategory(string categoryName)
+        public void CreateNewCategory()
         {
-            // Try to create new folder for the new category.
-            bool isFolderCreateSuccess = _assetService.CreateCategoryFolder(categoryName);
-            if (!isFolderCreateSuccess) { global::Log.Logger.Log_Error("category_exists", categoryName); return; }
+            // Create input field to get new category name
+            var inputField = Instantiate(_newCategoryInputField, _categoryContent).GetComponent<TMPro.TMP_InputField>();
+            inputField.Select();
+            inputField.ActivateInputField();
+            inputField.onEndEdit.AddListener(OnEndEdit);
 
-            CreateCategory(categoryName);
+            void OnEndEdit(string categoryName)
+            {
+                Destroy(inputField.gameObject);
 
-            // Create new content for the new category.
-            GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailViewport);
+                if (categoryName == string.Empty || Input.GetKey(KeyCode.Escape)) return;
 
-            // Keep the new created content in the '_thumbnailContentDict'
-            _thumbnailContentDict.Add(categoryName, newContent);
+                // Try to create new folder for the new category.
+                bool isFolderCreateSuccess = _assetService.CreateCategoryFolder(categoryName);
+                if (!isFolderCreateSuccess) { global::Log.Logger.Log_Error("category_exists", categoryName); return; }
+
+                CreateCategory(categoryName);
+
+                // Create new content for the new category.
+                GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailViewport);
+
+                // Keep the new created content in the '_thumbnailContentDict'
+                _thumbnailContentDict.Add(categoryName, newContent);
+                
+            }
         }
 
         private void CreateCategory(string category)
@@ -55,6 +70,8 @@ namespace UserInterface.World.Building.Asset
 
         [SerializeField] private Transform _categoryContent;
         [SerializeField] private GameObject _prefabCategory;
+        [SerializeField] private Button _addCategoryButton;
+        [SerializeField] private GameObject _newCategoryInputField;
 
         private string _activeCategory = "";
 
@@ -262,25 +279,38 @@ namespace UserInterface.World.Building.Asset
             var categories = _assetService.GetAllCategories();
             IEnumerable<Task> tasks = new List<Task>();
 
-            foreach (var category in categories)
+            foreach (var category in new List<string>(categories))
             {
-                CreateCategory(category);
-                ((List<Task>)tasks).Add(CreateContent(category));
+                if(_assetService.CategoryFolderExists(category))
+                {
+                    CreateCategory(category);
+                    ((List<Task>)tasks).Add(CreateContent(category));
+                    continue;
+                }
+
+                categories.Remove(category);
+                _assetService.RemoveCategoryFolder(category);
             }
 
             await Task.WhenAll(tasks);
-        }
-
-        private void Start()
-        {
-            _assetService = ServiceManager.GetService<IAseetService>();
-            Initialize();
 
             if (_thumbnailContentDict.Count == 0) return;
 
             _activeCategory = _thumbnailContentDict.Keys.ToList()[0];
 
             ChangeCategory(_activeCategory);
+
+            _addCategoryButton.onClick.AddListener(CreateNewCategory);
+        }
+
+        private void Start()
+        {
+            _assetService = ServiceManager.GetService<IAseetService>();
+
+            Initialize();
+
+            // Temporary
+            SaveManager.Instance.Save("TestSave");
         }
     }
 }
