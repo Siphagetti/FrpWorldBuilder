@@ -64,7 +64,7 @@ namespace Asset
         {
             var destFolder = Path.Combine(_folderPath, relativeFolderPath);
 
-            if (Directory.Exists(destFolder)) { Log.Logger.Log_Fatal("folder_exists", Path.GetFileName(destFolder)); return false; }
+            if (Directory.Exists(destFolder)) { Log.Logger.Log_Fatal("folder_exists", destFolder); return false; }
 
             Directory.CreateDirectory(destFolder);
             assetCategories.categoryFolderRelativePaths.Add(relativeFolderPath);
