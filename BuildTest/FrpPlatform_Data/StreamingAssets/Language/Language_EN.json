@@ -1,0 +1,48 @@
+{
+  "localizedMessages": [
+    {
+      "key": "test_message",
+      "text": "Test Message"
+    },
+    {
+      "key": "folder_exists",
+      "text": "A folder named as {0} already exists!"
+    },
+    {
+      "key": "folder_imported",
+      "text": "Folder imported successfully!"
+    },
+    {
+      "key": "category_exists",
+      "text": "{0} category exists!"
+    },
+    {
+      "key": "category_not_exists",
+      "text": "{0} category not exists!"
+    },
+    {
+      "key": "category_folder_not_found",
+      "text": "[0} category folder not found in Resources/Assets folder!"
+    },
+    {
+      "key": "world_exits",
+      "text": "World named as {0} already exists!"
+    },
+    {
+      "key": "world_not_found",
+      "text": "World named as {0} not found!"
+    },
+    {
+      "key": "save_success",
+      "text": "Saved successfully!"
+    },
+    {
+      "key": "import_error",
+      "text": "Import Unsuccessful!"
+    },
+    {
+      "key": "importing",
+      "text": "Importing..."
+    }
+  ]
+}
