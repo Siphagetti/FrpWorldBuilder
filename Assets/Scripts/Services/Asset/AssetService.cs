@@ -70,12 +70,15 @@ namespace Asset
             if (sourceDirs == null || sourceDirs.Length == 0) return null;
 
             // Set the destination path
-            string destPath = Path.Combine(_folderPath, relativeFolderPath);
+            string destFolderPath = Path.Combine(_folderPath, relativeFolderPath);
 
             // Copy the selected folder to the destination asynchronously
-            CopyFolder(sourceDirs[0], destPath);
+            bool isCopied = CopyFolder(sourceDirs[0], destFolderPath);
+            if (!isCopied) return null;
 
-            return destPath;
+            string newImportedFolder = Path.Combine(destFolderPath, Path.GetFileName(sourceDirs[0]));
+
+            return newImportedFolder;
         }
 
         public bool CategoryFolderExists(string category)
@@ -99,14 +102,14 @@ namespace Asset
             }
         }
 
-        private void CopyFolder(string sourcePath, string destinationPath)
+        private bool CopyFolder(string sourcePath, string destinationPath)
         {
             if (!Directory.Exists(destinationPath)) Directory.CreateDirectory(destinationPath);
 
             string dirName = Path.GetFileName(sourcePath);
             string destFolder = Path.Combine(destinationPath, dirName);
 
-            if (Directory.Exists(destFolder)) { Log.Logger.Log_Error("folder_exists", Path.GetFileName(destFolder)); return; }
+            if (Directory.Exists(destFolder)) { Log.Logger.Log_Error("folder_exists", Path.GetFileName(destFolder)); return false; }
 
             Directory.CreateDirectory(destFolder);
 
@@ -125,6 +128,8 @@ namespace Asset
                 string destinationSubDirectoryPath = Path.Combine(destFolder, subDirectoryName);
                 CopyFolder(subDirectoryPath, destinationSubDirectoryPath);
             }
+
+            return true;
         }
 
         // Return relative path for Resources folder.

@@ -113,9 +113,12 @@ namespace UserInterface.World.Building.Asset
                 */
 
                 List<GameObject> prefabs = new();
-                int timer = 0;
+                uint timer = 0;
+                uint timeLimit = 60;
 
-                while(true)
+                _importLoadingPanel.SetActive(true);
+
+                while (true)
                 {
                     prefabs = _assetService.GetPrefabsInFolder(importedFolderPath);
 
@@ -123,9 +126,10 @@ namespace UserInterface.World.Building.Asset
 
                     yield return new WaitForSeconds(1);
                     
-                    if (++timer > 20) 
+                    if (++timer == timeLimit) 
                     {
                         global::Log.Logger.Log_Fatal("import_error");
+                        _importLoadingPanel.SetActive(false);
                         yield break;
                     }
                 }
@@ -136,7 +140,9 @@ namespace UserInterface.World.Building.Asset
                 global::Log.Logger.Log_Info("folder_imported");
 
                 // Create Images of the prefabs.
-                StartCoroutine(CreateImages(prefabs, categoryContent.transform));
+                yield return StartCoroutine(CreateImages(prefabs, categoryContent.transform));
+
+                _importLoadingPanel.SetActive(false);
             }
         }
 
@@ -302,6 +308,8 @@ namespace UserInterface.World.Building.Asset
 
         // A prefab for keeps created Images.
         [SerializeField] private GameObject _prefabThumbnailContent;
+
+        [SerializeField] private GameObject _importLoadingPanel;
 
         // Keeps contents by their owner folder.
         private Dictionary<string, GameObject> _thumbnailContentDict = new();
