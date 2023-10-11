@@ -15,9 +15,9 @@ namespace Services
             _instance = this;
 
             // Default services
-            AddService<Asset.IAseetService>         (new Asset.AssetService());
-            AddService<Language.ILanguageService>   (new Language.LanguageService());
-            AddService<World.IWorldService>         (new World.WorldService());
+            AddService<Prefab.IPrefabService>           (new Prefab.PrefabService());
+            AddService<Language.ILanguageService>       (new Language.LanguageService());
+            AddService<World.IWorldService>             (new World.WorldService());
         }
 
         public static void AddService<T>(T service) where T : IBaseService
