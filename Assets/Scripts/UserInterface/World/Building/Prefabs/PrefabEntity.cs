@@ -75,6 +75,7 @@ namespace UserInterface.World.Building.Prefab
         public GameObject prefab;
         public Texture2D prefabThumbnail;
 
+#       if UNITY_EDITOR
         private void OnValidate()
         {
             string assetPath = AssetDatabase.GetAssetPath(this);
@@ -84,7 +85,7 @@ namespace UserInterface.World.Building.Prefab
 
             Texture2D thumbnail = AssetPreview.GetAssetPreview(prefab);
 
-            if ( thumbnail == null) return;
+            if (thumbnail == null) return;
 
             // Save the thumbnail as a PNG file
             byte[] pngData = thumbnail.EncodeToPNG();
@@ -98,6 +99,7 @@ namespace UserInterface.World.Building.Prefab
             // Update the prefabThumbnail field
             prefabThumbnail = (Texture2D)AssetDatabase.LoadAssetAtPath(thumbnailPath, typeof(Texture2D));
         }
+        #endif
     }
 }
 
