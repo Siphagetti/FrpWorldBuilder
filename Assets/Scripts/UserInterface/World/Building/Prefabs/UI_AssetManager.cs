@@ -81,7 +81,7 @@ namespace UserInterface.World.Building.Prefab
 
         private IEnumerator Initialize()
         {
-            var categories = _prefabService.GetAllCategories();
+            var categories = _prefabService.GetCategories();
 
             List<IEnumerator> coroutines = new();
 

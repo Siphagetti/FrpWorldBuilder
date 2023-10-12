@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UserInterface.World.Building.Log
 {
+
     public class UI_Logger_WorldBuilding : MonoBehaviour, ILoggerUI
     {
         [SerializeField] private Transform _logContainer;
@@ -15,7 +16,20 @@ namespace UserInterface.World.Building.Log
         [SerializeField] private Color errorTextColor       = new Color(1f, 0.5f, 0f);
         [SerializeField] private Color fatalTextColor       = Color.red;
 
-        public void Log_Track(string text)
+        public void Log(string message, global::Log.LogType logType)
+        {
+            switch (logType) 
+            {
+                case global::Log.LogType.Track:     Log_Track(message); break;
+                case global::Log.LogType.Info:      Log_Info(message); break;
+                case global::Log.LogType.Warning:   Log_Warning(message); break;
+                case global::Log.LogType.Error:     Log_Error(message); break;
+                case global::Log.LogType.Fatal:     Log_Fatal(message); break;
+            }
+        }
+
+
+        private void Log_Track(string text)
         {
             if (!gameObject.activeSelf) return;
 
@@ -24,7 +38,7 @@ namespace UserInterface.World.Building.Log
             _text.color = trackTextColor;
         }
 
-        public void Log_Info(string text)
+        private void Log_Info(string text)
         {
             if (!gameObject.activeSelf) return;
 
@@ -33,7 +47,7 @@ namespace UserInterface.World.Building.Log
             _text.color = infoTextColor;
         }
 
-        public void Log_Warning(string text)
+        private void Log_Warning(string text)
         {
             if (!gameObject.activeSelf) return;
 
@@ -42,7 +56,7 @@ namespace UserInterface.World.Building.Log
             _text.color = warningTextColor;
         }
 
-        public void Log_Error(string text)
+        private void Log_Error(string text)
         {
             if (!gameObject.activeSelf) return;
 
@@ -51,7 +65,7 @@ namespace UserInterface.World.Building.Log
             _text.color = errorTextColor;
         }
 
-        public void Log_Fatal(string text)
+        private void Log_Fatal(string text)
         {
             if (!gameObject.activeSelf) return;
 

@@ -11,19 +11,18 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(this);
 
-        new Log.Logger(); // Initialize Logger.
         new SaveManager(); // Initialize Save Manager.
         new ServiceManager(); // Initialize services.
 
 
         // Temporary
-        SaveManager.Instance.Load("TestSave");
+        SaveManager.Instance.Load();
 
     }
     private void Start()
     {
         // Temporary
-        // SaveManager.Instance.Save("TestSave");
+        SaveManager.Instance.Save();
     }
 
     public static GameManager Instance { get; private set; } = null;

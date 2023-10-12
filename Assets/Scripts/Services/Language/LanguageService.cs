@@ -1,5 +1,6 @@
 ﻿using Save;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,12 +23,10 @@ namespace Language
         public string text;
     }
 
-    [Serializable]
-    struct LanguagePackage
+    class LanguagePackage
     {
         public List<LocalizedMessage> localizedMessages;
     }
-
 
     internal class LanguageService : SavableObject, ILanguageService
     {
@@ -47,11 +46,12 @@ namespace Language
             _languagePackage = JsonUtility.FromJson<LanguagePackage>(data);
         }
 
-        public string GetLocalizedValue(string key)
+        public IEnumerator GetLocalizedValue(string key)
         {
+            yield return new WaitUntil(() => _languagePackage != null);
             LocalizedMessage textData = _languagePackage.localizedMessages.FirstOrDefault(d => d.key == key);
-            if (textData.Equals(default)) return "Key not found";
-            return textData.text;
+            if (textData.Equals(default)) yield return "Key not found";
+            else yield return textData.text;
         }
 
         public void Subscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange += languageChangeAction;

@@ -1,4 +1,6 @@
-﻿namespace Language
+﻿using System.Collections;
+
+namespace Language
 {
     // Define a delegate and an event for language change notifications
     public delegate void LanguageChangeAction();
@@ -8,7 +10,7 @@
         public void Subscribe(LanguageChangeAction languageChangeAction);
         public void Unsubscribe(LanguageChangeAction languageChangeAction);
 
-        public string GetLocalizedValue(string key);
+        public IEnumerator GetLocalizedValue(string key);
 
         public void ChangeLanguage(Language language);
     }

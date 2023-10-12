@@ -5,7 +5,7 @@ namespace Prefab
 {
     internal interface IPrefabService : Services.IBaseService
     {
-        public PrefabEntity[] GetPrefabEntitiesInFolder(string folderPath);
-        public List<string> GetAllCategories();
+        public IEnumerable<PrefabEntity> GetPrefabEntitiesInFolder(string folderPath);
+        public List<string> GetCategories();
     }
 }

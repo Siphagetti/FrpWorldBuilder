@@ -1,4 +1,3 @@
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UserInterface.World.Building.Prefab;
@@ -13,6 +12,6 @@ public class UI_Thumbnail : MonoBehaviour
     {
         _prefab = entity.prefab;
         _text.text = entity.prefab.name;
-        _image.texture = AssetPreview.GetAssetPreview(entity.prefab);
+        _image.texture = entity.prefabThumbnail;
     }
 }

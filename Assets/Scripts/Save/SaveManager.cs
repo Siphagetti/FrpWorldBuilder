@@ -8,7 +8,7 @@ namespace Save
 {
     public class SaveManager
     {
-        public readonly string _folderPath = Path.Combine(Application.dataPath, "Save");
+        public readonly string _folderPath = Path.Combine(Application.streamingAssetsPath, "Save");
 
         private string _currentSaveFileName = "Save.json";
 
@@ -84,10 +84,9 @@ namespace Save
 
         public async void Load(string saveName = "")
         {
-            string fileName = saveName + ".json";
-            _currentSaveFileName = saveName == "" ? _currentSaveFileName : fileName;
+            _currentSaveFileName = saveName == "" ? _currentSaveFileName : saveName + ".json";
 
-            string filePath = Path.Combine(_folderPath, fileName);
+            string filePath = Path.Combine(_folderPath, _currentSaveFileName);
             
             if (File.Exists(filePath))
             {

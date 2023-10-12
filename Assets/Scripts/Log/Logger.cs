@@ -1,61 +1,100 @@
 ﻿using Language;
 using Services;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 
 namespace Log
 {
-    public class Logger
+    public enum LogType
+    {
+        Track,
+        Info,
+        Warning,
+        Error,
+        Fatal
+    }
+
+    public class Logger : MonoBehaviour
     {
         private static Logger _instance;
 
         private ILoggerUI[] loggerUIs;
-        public Logger()
+
+        private void Awake()
         {
             if (_instance != null) return;
             _instance = this;
 
-            loggerUIs = Object.FindObjectsOfType<MonoBehaviour>().OfType<ILoggerUI>().ToArray();
+            loggerUIs = FindObjectsOfType<MonoBehaviour>().OfType<ILoggerUI>().ToArray();
+        }
+
+        private IEnumerator Log(string key, LogType logType, params object[] args)
+        {
+            yield return StartCoroutine(GetText(key, args));
+            var enumerator = GetText(key, args);
+
+            while (enumerator.MoveNext())
+            {
+                var result = enumerator.Current;
+
+                if (result is string)
+                {
+                    string text = result as string;
+
+                    foreach (var loggerUI in _instance.loggerUIs)
+                    {
+                        loggerUI.Log(text, logType); yield return null;
+                    }
+                }
+            }
         }
 
         public static void Log_Track(string key, params object[] args)
         {
-            string text = GetText(key, args);
-            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Track(text);
+            _instance.StartCoroutine(_instance.Log(key, LogType.Track, args));
         }
 
         public static void Log_Info(string key, params object[] args)
         {
-            string text = GetText(key, args);
-            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Info(text);
+            _instance.StartCoroutine(_instance.Log(key, LogType.Info, args));
+
         }
 
         public static void Log_Warning(string key, params object[] args)
         {
-            string text = GetText(key, args);
-            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Warning(text);
+            _instance.StartCoroutine(_instance.Log(key, LogType.Warning, args));
         }
 
         public static void Log_Error(string key, params object[] args)
         {
-            string text = GetText(key, args);
-            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Error(text);
+            _instance.StartCoroutine(_instance.Log(key, LogType.Error, args));
         }
 
         public static void Log_Fatal(string key, params object[] args)
         {
-            string text = GetText(key, args);
-            foreach (var loggerUI in _instance.loggerUIs) loggerUI.Log_Fatal(text);
+            _instance.StartCoroutine(_instance.Log(key, LogType.Fatal, args));
         }
 
 
         // -------------------- Helpers --------------------
 
         // Takes a key to return a text in current language
-        private static string GetText(string key, params object[] args)
+        private IEnumerator GetText(string key, params object[] args)
         {
-            var msg = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key);
-            return string.Format(msg, args);
+            yield return StartCoroutine(ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key));
+
+            // Get the result from the IEnumerator
+            var enumerator = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key);
+            while (enumerator.MoveNext())
+            {
+                var result = enumerator.Current;
+                if (result is string)
+                {
+                    var msg = result as string;
+                    yield return string.Format(msg, args);
+                }
+            }
         }
     }
 }

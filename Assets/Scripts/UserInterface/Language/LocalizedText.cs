@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using Services;
+using System.Collections;
 
 namespace Language
 {
@@ -19,8 +20,16 @@ namespace Language
 
         private void UpdateText()
         {
-            if (_text != null) 
-                _text.text = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(_key);
+            StartCoroutine(UpdateTextCoroutine());
+        }
+
+        private IEnumerator UpdateTextCoroutine()
+        {
+            if (_text != null)
+            {
+                yield return ServiceManager.GetService<ILanguageService>().GetLocalizedValue(_key);
+                _text.text = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(_key).Current as string;
+            }
         }
 
         private void OnDestroy()
