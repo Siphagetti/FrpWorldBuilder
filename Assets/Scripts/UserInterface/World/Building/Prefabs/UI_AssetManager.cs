@@ -109,6 +109,7 @@ namespace UserInterface.World.Building.Prefab
         private void Start()
         {
             _prefabService = ServiceManager.GetService<IPrefabService>();
+            UI_Thumbnail.OwnerUIPanelRect = GetComponent<RectTransform>();
 
             StartCoroutine(Initialize());
         }
