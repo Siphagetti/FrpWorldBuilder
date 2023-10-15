@@ -542,6 +542,7 @@ GameObject:
   m_Component:
   - component: {fileID: 881551757}
   - component: {fileID: 881551759}
+  - component: {fileID: 881551760}
   m_Layer: 5
   m_Name: Panel_WorldBuilding
   m_TagString: Untagged
@@ -578,6 +579,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 881551756}
   m_CullTransparentMesh: 1
+--- !u!114 &881551760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881551756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f067703100bb0984981e375c2ad1b100, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  rimLightingMaterial: {fileID: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -663,13 +680,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: 0.2736364, y: -0, z: -0, w: 0.96183324}
+  m_LocalPosition: {x: 0, y: 7.44, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 31.762, y: 0, z: 0}
 --- !u!1 &1297161847
 GameObject:
   m_ObjectHideFlags: 0
@@ -939,7 +956,7 @@ GameObject:
   - component: {fileID: 1837775088}
   - component: {fileID: 1837775087}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: Canvas_WorldBuilding
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1261,5 +1278,5 @@ SceneRoots:
   - {fileID: 551563406}
   - {fileID: 963194228}
   - {fileID: 705507995}
-  - {fileID: 1837775090}
   - {fileID: 131603216}
+  - {fileID: 1837775090}

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Tree
   m_EditorClassIdentifier: 
   category: Test
-  prefab: {fileID: 919132149155446097, guid: a174fc0fb34b2404f995eff822236215, type: 3}
+  prefab: {fileID: 919132149155446097, guid: 0dda5ad976241424392f9883aebd2a9e, type: 3}
   prefabThumbnail: {fileID: 2800000, guid: 1845322de566d6f46a0cdae6a3c9b488, type: 3}

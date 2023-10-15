@@ -6,6 +6,7 @@ namespace UserInterface.World.Building.Prefab
 
 #if UNITY_EDITOR
     using UnityEditor;
+    using UnityEditor.PackageManager;
 
     [CustomEditor(typeof(PrefabEntity))]
     public class PrefabEntityEditor : Editor
