@@ -7,6 +7,7 @@ using UserInterface.World.Building.Prefab;
 public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public static RectTransform OwnerUIPanelRect { get; set; }
+    public static DragManager dragManager { get; set; }
 
     [SerializeField] private RawImage _image;
     [SerializeField] private TMPro.TMP_Text _text;
@@ -25,6 +26,10 @@ public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     // Hide UI when cursor should drag the spawned prefab.
     private bool _hideUI;
 
+
+    private GameObject _spawnedPrefab;
+    private Vector3 _prefabSpawnPos = 10000 * Vector3.one;
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         _parentTransform = transform.parent;
@@ -37,6 +42,9 @@ public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         _mouseOffset = transform.position - Input.mousePosition;
 
         _hideUI = false;
+
+        // Keep instantiated prefab at invisible position.
+        _spawnedPrefab = Instantiate(_prefab, _prefabSpawnPos, Quaternion.identity);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -57,7 +65,8 @@ public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         {
             if (_hideUI) return;
 
-            DragManager.SetDraggingObj(PrefabManager.SpawnPrefab(_prefab));
+            // Set instantiated prefab as dragging object of Drag Manager.
+            dragManager.SetDraggingObj(_spawnedPrefab);
 
             _image.gameObject.SetActive(false);
             _text.gameObject.SetActive(false);
@@ -68,7 +77,10 @@ public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         {
             if (!_hideUI) return;
 
-            DragManager.DestroyDraggingObj();
+            // Set instantiated prefab's position as '_prefabSpawnPos' back  
+            // and unassign dragging object
+            _spawnedPrefab.transform.position = _prefabSpawnPos;
+            dragManager.removeDraggingObj();
 
             _image.gameObject.SetActive(true);
             _text.gameObject.SetActive(true);
@@ -85,6 +97,8 @@ public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
             _text.gameObject.SetActive(true);
         }
 
+        if (_spawnedPrefab.transform.position == _prefabSpawnPos) Destroy(_spawnedPrefab);
+
         // Set UI's parent as its beginning parent.
         transform.SetParent(_parentTransform);
 
@@ -95,6 +109,10 @@ public class UI_Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     public void SetThumbnail(PrefabEntity entity)
     {
         _prefab = entity.prefab;
+
+        // While creating thumbnail of a prefab, Initialize its Prefab component. 
+        _prefab.GetComponent<Prefab.Prefab>().Initialize();
+
         _text.text = entity.prefab.name;
         _image.texture = entity.prefabThumbnail;
     }

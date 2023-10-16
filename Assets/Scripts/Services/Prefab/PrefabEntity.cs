@@ -6,7 +6,6 @@ namespace UserInterface.World.Building.Prefab
 
 #if UNITY_EDITOR
     using UnityEditor;
-    using UnityEditor.PackageManager;
 
     [CustomEditor(typeof(PrefabEntity))]
     public class PrefabEntityEditor : Editor
@@ -38,32 +37,10 @@ namespace UserInterface.World.Building.Prefab
             // Add a button to capture the thumbnail.
             if (GUILayout.Button("Capture Thumbnail"))
             {
-                CaptureAndSaveThumbnail();
+                prefabEntity.CaptureAndSaveThumbnail();
             }
 
-            void CaptureAndSaveThumbnail()
-            {
-                if (prefabEntity.prefab != null)
-                {
-                    Texture2D thumbnail = AssetPreview.GetAssetPreview(prefabEntity.prefab);
-                    if (thumbnail != null)
-                    {
-                        // Save the thumbnail as a PNG file
-                        byte[] pngData = thumbnail.EncodeToPNG();
-                        string assetPath = AssetDatabase.GetAssetPath(prefabEntity);
-                        string thumbnailPath = assetPath.Substring(0, assetPath.LastIndexOf('/')) + "/" + prefabEntity.prefab.name + "_Thumbnail.png";
-
-                        System.IO.File.WriteAllBytes(thumbnailPath, pngData);
-
-                        // Force a refresh of the asset database
-                        AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-
-                        // Update the prefabThumbnail field
-                        prefabEntity.prefabThumbnail = (Texture2D)AssetDatabase.LoadAssetAtPath(thumbnailPath, typeof(Texture2D));
-                        EditorUtility.SetDirty(prefabEntity);
-                    }
-                }
-            }
+            EditorUtility.SetDirty(this);
         }
     }
 
@@ -79,6 +56,7 @@ namespace UserInterface.World.Building.Prefab
 #       if UNITY_EDITOR
         private void OnValidate()
         {
+           
             string assetPath = AssetDatabase.GetAssetPath(this);
             category = Path.GetFileName(Path.GetDirectoryName(assetPath));
 
@@ -87,6 +65,12 @@ namespace UserInterface.World.Building.Prefab
             Texture2D thumbnail = AssetPreview.GetAssetPreview(prefab);
 
             if (thumbnail == null) return;
+
+            if (prefabThumbnail != null)
+            {
+                var prevThumbnailPath = AssetDatabase.GetAssetPath(prefabThumbnail);
+                File.Delete(prevThumbnailPath);
+            }
 
             // Save the thumbnail as a PNG file
             byte[] pngData = thumbnail.EncodeToPNG();
@@ -100,7 +84,36 @@ namespace UserInterface.World.Building.Prefab
             // Update the prefabThumbnail field
             prefabThumbnail = (Texture2D)AssetDatabase.LoadAssetAtPath(thumbnailPath, typeof(Texture2D));
         }
-        #endif
+
+        public void CaptureAndSaveThumbnail()
+        {
+            if (prefab != null)
+            {
+                Texture2D thumbnail = AssetPreview.GetAssetPreview(prefab);
+                if (thumbnail != null)
+                {
+                    if (prefabThumbnail != null)
+                    {
+                        var prevThumbnailPath = AssetDatabase.GetAssetPath(prefabThumbnail);
+                        File.Delete(prevThumbnailPath);
+                    }
+
+                    // Save the thumbnail as a PNG file
+                    byte[] pngData = thumbnail.EncodeToPNG();
+                    string assetPath = AssetDatabase.GetAssetPath(this);
+                    string thumbnailPath = assetPath.Substring(0, assetPath.LastIndexOf('/')) + "/" + prefab.name + "_Thumbnail.png";
+
+                    File.WriteAllBytes(thumbnailPath, pngData);
+
+                    // Force a refresh of the asset database
+                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
+                    // Update the prefabThumbnail field
+                    prefabThumbnail = (Texture2D)AssetDatabase.LoadAssetAtPath(thumbnailPath, typeof(Texture2D));
+                }
+            }
+        }
+#endif
     }
 }
 

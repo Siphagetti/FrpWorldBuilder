@@ -527,6 +527,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0895267d664d04e9753f32d89b8593, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rimLightMaterial: {fileID: 0}
   _categoryScrollRect: {fileID: 2034821798}
   _prefabCategory: {fileID: 1127631284097948487, guid: 8cc96201c69eb9b40a64b6c06606f6b4, type: 3}
   _thumbnailScrollRect: {fileID: 333686787}
@@ -594,7 +595,7 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
-  rimLightingMaterial: {fileID: 0}
+  rimLightMaterial: {fileID: 2100000, guid: 705420cd65f96d54dabd4283aca2b1de, type: 2}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: New Prefab Entity 1
   m_EditorClassIdentifier: 
   category: Test
-  prefab: {fileID: 919132149155446097, guid: bc92df5a8823c4247926124e4b69baec, type: 3}
+  prefab: {fileID: 8015452382150936238, guid: 4a01f1ac1dbd40446b3b7036ef624053, type: 3}
   prefabThumbnail: {fileID: 2800000, guid: c0c9764173ab26542a670709a8f9e23c, type: 3}

@@ -2,22 +2,70 @@
 
 namespace Managers.WorldBuilding
 {
-    internal class DragManager : MonoBehaviour
+    public class DragManager : MonoBehaviour
     {
-        public static float CamDist { get; set; } = 10f;
-
-        private static DragManager _instance;
+        // Camera distance for '_draggingObj'
+        // This will come from camera movement script in the future. (maybe)
+        private float CamDist { get; set; } = 10f;
 
         private GameObject _draggingObj;
+        private GameObject _hoveringObj;
+
+        // Mouse offset where cursor begin to drag the '_draggingObj'
         private Vector3 _mouseOffset;
 
+        // Target layer for raycast.
         public LayerMask targetLayer;
 
-        public Material rimLightingMaterial;
+        // Requires for creating rim materials of prefabs.
+        // Set this to Prefab.rimLightMaterial on awake 
+        public Material rimLightMaterial;
+
+
+        private void FixedUpdate()
+        {
+            if (!Input.GetKey(KeyCode.LeftControl))
+            {
+                if (_hoveringObj)
+                {
+                    _hoveringObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj();
+                    _hoveringObj = null;
+                }
+                return;
+            }
+
+            if (_draggingObj != null) return;
+
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
+            {
+                var prefab = hit.collider.gameObject;
+
+                if (prefab != _hoveringObj)
+                {
+                    _hoveringObj?.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj();
+                    _hoveringObj = prefab;
+                    _hoveringObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsRim();
+                }
+            }
+            else if (_hoveringObj)
+            {
+                _hoveringObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj();
+                _hoveringObj = null;
+            }
+        }
 
         private void Update()
         {
-            if (Input.GetMouseButtonUp(0)) _draggingObj = null;
+            if (Input.GetMouseButtonUp(0) && _draggingObj != null) 
+            { 
+                _draggingObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj(); 
+                _draggingObj = null;
+                _hoveringObj = null;
+            }
+            
 
             if (_draggingObj != null)
             {
@@ -42,27 +90,28 @@ namespace Managers.WorldBuilding
             }
         }
 
-        public static void SetDraggingObj(GameObject obj)
+        public void SetDraggingObj(GameObject obj)
         {
             Vector3 screenPosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist);
             Vector3 newPosition = Camera.main.ScreenToWorldPoint(screenPosition);
 
             obj.transform.position = newPosition;
 
-            _instance._draggingObj = obj;
-            _instance._mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
+            _draggingObj = obj;
+            _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
+
+            obj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsRim();
         }
 
-        public static void DestroyDraggingObj()
+        public void removeDraggingObj()
         {
-            Destroy(_instance._draggingObj);
-            _instance._draggingObj = null;
+            _draggingObj = null;
         }
 
         private void Awake()
         {
-            if ( _instance != null) { Destroy( _instance ); return; }
-            _instance = this;
+            UI_Thumbnail.dragManager = this;
+            Prefab.Prefab.rimLightMaterial = rimLightMaterial;
         }
     }
 }
