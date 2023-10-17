@@ -65,31 +65,39 @@ class PrefabModifier
 
 namespace Prefab
 {
+    [System.Serializable]
+    public struct Materials
+    {
+        public Transform owner;
+        public Material[] originalMaterials;
+        public Material[] rimMaterials;
+
+        public void ChangeMaterialsToOrj() => owner.GetComponent<MeshRenderer>().materials = originalMaterials;
+        public void ChangeMaterialsToRim() => owner.GetComponent<MeshRenderer>().materials = rimMaterials;
+    }
+
     public class Prefab : MonoBehaviour
     {
+        public static float Size { get; } = 5f;
         public static Material rimLightMaterial { get; set; }
 
-        public Material[] _originalMaterials;
-        public Material[] _rimLightMaterials;
+        public List<Materials> materials = new();
+        public void ChangeMaterialsAsRim() => materials.ForEach(m => m.ChangeMaterialsToRim());
+        public void ChangeMaterialsAsOrj() => materials.ForEach(m => m.ChangeMaterialsToOrj());
 
-        public void ChangeMaterialsAsRim() => GetComponent<MeshRenderer>().materials = _rimLightMaterials;
-        public void ChangeMaterialsAsOrj() => GetComponent<MeshRenderer>().materials = _originalMaterials;
-
-        public async void Initialize()
+        public void Initialize()
         {
             gameObject.layer = LayerMask.NameToLayer("Draggable");
 
-            IEnumerable<Task> loadTasks = new List<Task>()
-            {
-                CreateMeshCollider(),
-                ScaleToVolume()
-            };
-
-            await Task.WhenAll(loadTasks);
+            CreateMeshCollider();
+            ScaleToVolume();
+            CreateRimMaterials(transform);
         }
 
-        private async Task CreateMeshCollider()
+        private void CreateMeshCollider()
         {
+            if (GetComponent<MeshCollider>()) return;
+
             // If root has mesh directly creates a mesh collider and sets its mesh as owned mesh
             if (GetComponent<MeshFilter>())
             {
@@ -113,39 +121,24 @@ namespace Prefab
                     {
                         combine[i].mesh = meshFilter.sharedMesh;
                         combine[i].transform = meshFilter.transform.localToWorldMatrix;
-                        meshFilter.gameObject.SetActive(false); // Disable child objects
 
                         // Store the material of the sub-mesh
-                        Renderer renderer = meshFilter.GetComponent<Renderer>();
-                        if (renderer != null && renderer.sharedMaterial != null) materials.Add(renderer.sharedMaterial);
+                        MeshRenderer renderer = meshFilter.GetComponent<MeshRenderer>();
+                        if (renderer != null && renderer.sharedMaterials != null) materials.AddRange(renderer.sharedMaterials);
                     }
                     else Debug.LogWarning("Mesh is not readable: " + meshFilter.name);
                 }
 
                 Mesh combinedMesh = new Mesh();
-                combinedMesh.CombineMeshes(combine, false, true, false);
-
-                // Create a new MeshFilter for the spawnedPrefab and assign the combined mesh
-                MeshFilter newMeshFilter = gameObject.AddComponent<MeshFilter>();
-                newMeshFilter.sharedMesh = combinedMesh;
-
-                // Create a new MeshRenderer for the spawnedPrefab
-                MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-
-                // Assign the materials to the new MeshRenderer
-                meshRenderer.materials = materials.ToArray();
+                combinedMesh.CombineMeshes(combine, true, true, false);
 
                 MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
                 meshCollider.sharedMesh = combinedMesh;
             }
-
-            await CreateRimMaterials();
         }
 
-        private Task ScaleToVolume()
+        private void ScaleToVolume()
         {
-            float size = 5f;
-
             MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
 
             float totalVolume = 0f;
@@ -163,49 +156,109 @@ namespace Prefab
             }
 
             // Calculate the scaling factor to achieve a volume of 1
-            float scaleFactor = size / totalVolume;
+            float scaleFactor = Size / totalVolume;
 
             // Apply the scaling factor to the selected model
             transform.localScale *= Mathf.Pow(scaleFactor, 1f / 3f); // Cube root to maintain proportions
-
-            return Task.CompletedTask;
         }
 
-        private Task CreateRimMaterials()
+        private void CreateRimMaterials(Transform parentTransform)
         {
-            MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
-            
-            _originalMaterials = meshRenderer.sharedMaterials;
-
-            List<Material> rimMaterials = new();
-
-            foreach (var material in _originalMaterials)
+            if (parentTransform == transform)
             {
-                Material newRimMaterial = new Material(rimLightMaterial);
+                MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
 
-                if (material.HasProperty("_Color"))
+                if (meshRenderer != null)
                 {
-                    Color color = material.GetColor("_Color");
-                    newRimMaterial.SetColor("_Color", color);
-                }
+                    var orjMaterials = meshRenderer.sharedMaterials;
 
-                if (material.HasProperty("_MainTex"))
-                {
-                    Texture mainTexture = material.GetTexture("_MainTex");
-                    newRimMaterial.SetTexture("_MainTex", mainTexture);
-                }
+                    List<Material> rimMaterialList = new();
 
-                if (material.HasProperty("_BumpMap"))
-                {
-                    Texture bumpMap = material.GetTexture("_BumpMap");
-                    newRimMaterial.SetTexture("_BumpMap", bumpMap);
-                }
+                    foreach (var material in orjMaterials)
+                    {
+                        Material newRimMaterial = new(rimLightMaterial);
+                        newRimMaterial.name = "Rim_" + material.name;
 
-                rimMaterials.Add(newRimMaterial);
+                        if (material.HasProperty("_Color"))
+                        {
+                            Color color = material.GetColor("_Color");
+                            newRimMaterial.SetColor("_Color", color);
+                        }
+
+                        if (material.HasProperty("_MainTex"))
+                        {
+                            Texture mainTexture = material.GetTexture("_MainTex");
+                            newRimMaterial.SetTexture("_MainTex", mainTexture);
+                        }
+
+                        if (material.HasProperty("_BumpMap"))
+                        {
+                            Texture bumpMap = material.GetTexture("_BumpMap");
+                            newRimMaterial.SetTexture("_BumpMap", bumpMap);
+                        }
+
+                        rimMaterialList.Add(newRimMaterial);
+                    }
+
+                    var rimMaterials = rimMaterialList.ToArray();
+
+                    materials.Add(new()
+                    {
+                        owner = transform,
+                        originalMaterials = orjMaterials,
+                        rimMaterials = rimMaterials
+                    });
+                }
             }
-            _rimLightMaterials = rimMaterials.ToArray();
 
-            return Task.CompletedTask;
+            foreach (Transform child in parentTransform)
+            {
+                MeshRenderer meshRenderer = child.GetComponent<MeshRenderer>();
+
+                if (meshRenderer == null) continue;
+
+                var orjMaterials = meshRenderer.sharedMaterials;
+
+                List<Material> rimMaterialList = new();
+
+                foreach (var material in orjMaterials)
+                {
+                    Material newRimMaterial = new(rimLightMaterial);
+                    newRimMaterial.name = "Rim_" + material.name;
+
+                    if (material.HasProperty("_Color"))
+                    {
+                        Color color = material.GetColor("_Color");
+                        newRimMaterial.SetColor("_Color", color);
+                    }
+
+                    if (material.HasProperty("_MainTex"))
+                    {
+                        Texture mainTexture = material.GetTexture("_MainTex");
+                        newRimMaterial.SetTexture("_MainTex", mainTexture);
+                    }
+
+                    if (material.HasProperty("_BumpMap"))
+                    {
+                        Texture bumpMap = material.GetTexture("_BumpMap");
+                        newRimMaterial.SetTexture("_BumpMap", bumpMap);
+                    }
+
+                    rimMaterialList.Add(newRimMaterial);
+                }
+
+                var rimMaterials = rimMaterialList.ToArray();
+
+                materials.Add(new()
+                {
+                    owner = child,
+                    originalMaterials = orjMaterials,
+                    rimMaterials = rimMaterials
+                });
+
+                if (child.childCount > 0) CreateRimMaterials(child);
+                
+            }
         }
     }
 }

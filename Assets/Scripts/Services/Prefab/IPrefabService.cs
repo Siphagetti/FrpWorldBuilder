@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
-using UserInterface.World.Building.Prefab;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Prefab
 {
     internal interface IPrefabService : Services.IBaseService
     {
-        public IEnumerable<PrefabEntity> GetPrefabEntitiesInFolder(string folderPath);
-        public List<string> GetCategories();
+        public Task<List<GameObject>> LoadPrefabsInAssetBundlesForCategory(string categoryName);
+        public IEnumerable<string> GetCategories();
+        public Task<List<GameObject>> ImportAssetBundle(string category);
     }
 }

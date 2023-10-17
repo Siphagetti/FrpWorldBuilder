@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Managers.WorldBuilding
+namespace Prefab
 {
     public class DragManager : MonoBehaviour
     {
@@ -28,7 +28,7 @@ namespace Managers.WorldBuilding
             {
                 if (_hoveringObj)
                 {
-                    _hoveringObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj();
+                    _hoveringObj.GetComponent<Prefab>().ChangeMaterialsAsOrj();
                     _hoveringObj = null;
                 }
                 return;
@@ -45,14 +45,14 @@ namespace Managers.WorldBuilding
 
                 if (prefab != _hoveringObj)
                 {
-                    _hoveringObj?.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj();
+                    _hoveringObj?.GetComponent<Prefab>().ChangeMaterialsAsOrj();
                     _hoveringObj = prefab;
-                    _hoveringObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsRim();
+                    _hoveringObj.GetComponent<Prefab>().ChangeMaterialsAsRim();
                 }
             }
             else if (_hoveringObj)
             {
-                _hoveringObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj();
+                _hoveringObj.GetComponent<Prefab>().ChangeMaterialsAsOrj();
                 _hoveringObj = null;
             }
         }
@@ -61,7 +61,7 @@ namespace Managers.WorldBuilding
         {
             if (Input.GetMouseButtonUp(0) && _draggingObj != null) 
             { 
-                _draggingObj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsOrj(); 
+                _draggingObj.GetComponent<Prefab>().ChangeMaterialsAsOrj(); 
                 _draggingObj = null;
                 _hoveringObj = null;
             }
@@ -100,7 +100,7 @@ namespace Managers.WorldBuilding
             _draggingObj = obj;
             _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
 
-            obj.GetComponent<Prefab.Prefab>().ChangeMaterialsAsRim();
+            obj.GetComponent<Prefab>().ChangeMaterialsAsRim();
         }
 
         public void removeDraggingObj()
@@ -110,8 +110,8 @@ namespace Managers.WorldBuilding
 
         private void Awake()
         {
-            UI_Thumbnail.dragManager = this;
-            Prefab.Prefab.rimLightMaterial = rimLightMaterial;
+            Thumbnail.dragManager = this;
+            Prefab.rimLightMaterial = rimLightMaterial;
         }
     }
 }

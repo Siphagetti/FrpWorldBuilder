@@ -480,7 +480,7 @@ GameObject:
   - component: {fileID: 759196949}
   - component: {fileID: 759196950}
   m_Layer: 5
-  m_Name: Panel_AssetManagement
+  m_Name: Panel_PrefabManagement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -527,7 +527,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0895267d664d04e9753f32d89b8593, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rimLightMaterial: {fileID: 0}
   _categoryScrollRect: {fileID: 2034821798}
   _prefabCategory: {fileID: 1127631284097948487, guid: 8cc96201c69eb9b40a64b6c06606f6b4, type: 3}
   _thumbnailScrollRect: {fileID: 333686787}

@@ -1,0 +1,45 @@
+ManifestFileVersion: 0
+CRC: 3703445509
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 102e1e1cddb2c2aa222ca81cc775ecca
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: d27d605e56b00c7d193d3604b99a7461
+  IncrementalBuildHash:
+    serializedVersion: 2
+    Hash: 102e1e1cddb2c2aa222ca81cc775ecca
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Prefabs/GameObjects/modern chair 11 obj.prefab
+- Assets/Prefabs/GameObjects/Tree2 3.prefab
+- Assets/Prefabs/GameObjects/Tree.prefab
+- Assets/Prefabs/GameObjects/Tree2.prefab
+- Assets/Prefabs/GameObjects/Tree 2.prefab
+- Assets/Prefabs/GameObjects/Tree 3.prefab
+- Assets/Prefabs/GameObjects/modern chair 11 obj 1.prefab
+- Assets/Prefabs/GameObjects/Tree2 1.prefab
+- Assets/Prefabs/GameObjects/modern chair 11 obj 3.prefab
+- Assets/Prefabs/GameObjects/Tree 1.prefab
+- Assets/Prefabs/GameObjects/modern chair 11 obj 2.prefab
+- Assets/Prefabs/GameObjects/Tree2 2.prefab
+Dependencies: []
