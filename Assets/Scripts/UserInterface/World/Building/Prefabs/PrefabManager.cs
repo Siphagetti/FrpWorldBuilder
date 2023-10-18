@@ -1,9 +1,8 @@
-﻿using Prefab;
-using Services;
+﻿using Services;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +20,8 @@ namespace Prefab
 
         [Header("Thumbnail Parameters")]
 
+        [SerializeField] private GameObject ThumbnailPhotoShoot;
+
         // Scroll rect for image contents.
         [SerializeField] private ScrollRect _thumbnailScrollRect;
 
@@ -36,7 +37,7 @@ namespace Prefab
         private void Start()
         {
             Thumbnail.OwnerUIPanelRect = GetComponent<RectTransform>();
-            StartCoroutine(Initialize());
+            CoroutineHandler.NewCoroutine(Initialize());
         }
 
         private IEnumerator Initialize()
@@ -117,13 +118,17 @@ namespace Prefab
         {
             if (prefabs != null)
             {
-                Camera camera = CreateCamera();
+                var photoShoot = Instantiate(ThumbnailPhotoShoot);
+
+                Camera camera = photoShoot.transform.GetChild(0).GetComponent<Camera>();
+                camera.aspect = 1;
+
+                Transform prefabLocation = photoShoot.transform.GetChild(1);
 
                 foreach (var prefab in prefabs)
                 {
                     // Instantiate the prefab
-                    Vector3 prefabSpawnPos = camera.transform.position + Prefab.Size * 0.5f * (Vector3.forward + Vector3.down / 2);
-                    GameObject instantiatedPrefab = Instantiate(prefab, prefabSpawnPos, Quaternion.identity);
+                    GameObject instantiatedPrefab = Instantiate(prefab, prefabLocation);
 
                     GameObject thumbnail = Instantiate(_prefabThumbnail);
                     thumbnail.transform.SetParent(content);
@@ -141,38 +146,23 @@ namespace Prefab
                     // Render the camera manually into the render texture
                     camera.Render();
 
-                    // Explicitly destroy the instantiated prefab after rendering is complete
-                    Destroy(instantiatedPrefab);
-
                     // Wait for the next frame
                     yield return null;
 
+                    // Explicitly destroy the instantiated prefab after rendering is complete
+                    Destroy(instantiatedPrefab);
+
                     // Clear the camera's target texture
                     camera.targetTexture = null;
+
+                    yield return null;
                 }
 
-                Destroy(camera.gameObject);
+                Destroy(photoShoot);
             }
             else
             {
                 Debug.LogError("Prefab not found in Resources folder.");
-            }
-
-            Camera CreateCamera()
-            {
-                // Create a new camera and set its properties
-                Camera camera = new GameObject("Prefab Viewer Camera").AddComponent<Camera>();
-                camera.fieldOfView = 60;
-                camera.aspect = 1;
-                camera.clearFlags = CameraClearFlags.SolidColor;
-                camera.backgroundColor = Color.black;
-                camera.enabled = false;
-
-                // Set the position of the camera at some distance from the prefab
-                camera.transform.localPosition = Vector3.one * -10000;
-                camera.transform.parent = transform;
-
-                return camera;
             }
         }
 

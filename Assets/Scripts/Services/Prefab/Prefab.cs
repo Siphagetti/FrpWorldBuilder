@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
+using System.Linq;
+using System.Collections;
 
 
 #if UNITY_EDITOR
@@ -65,200 +66,65 @@ class PrefabModifier
 
 namespace Prefab
 {
-    [System.Serializable]
-    public struct Materials
-    {
-        public Transform owner;
-        public Material[] originalMaterials;
-        public Material[] rimMaterials;
-
-        public void ChangeMaterialsToOrj() => owner.GetComponent<MeshRenderer>().materials = originalMaterials;
-        public void ChangeMaterialsToRim() => owner.GetComponent<MeshRenderer>().materials = rimMaterials;
-    }
-
     public class Prefab : MonoBehaviour
     {
-        public static float Size { get; } = 5f;
-        public static Material rimLightMaterial { get; set; }
-
-        public List<Materials> materials = new();
-        public void ChangeMaterialsAsRim() => materials.ForEach(m => m.ChangeMaterialsToRim());
-        public void ChangeMaterialsAsOrj() => materials.ForEach(m => m.ChangeMaterialsToOrj());
-
+        public static float Size { get; } = 5.0f;
         public void Initialize()
         {
             gameObject.layer = LayerMask.NameToLayer("Draggable");
 
-            CreateMeshCollider();
-            ScaleToVolume();
-            CreateRimMaterials(transform);
-        }
+            // ------------ Combine Mesh ------------
 
-        private void CreateMeshCollider()
-        {
-            if (GetComponent<MeshCollider>()) return;
+            // Get all mesh filters in the prefab.
+            List<MeshFilter> meshFilters = GetComponentsInChildren<MeshFilter>().ToList();
+            var rootMeshFilter = GetComponent<MeshFilter>();
+            if (rootMeshFilter) meshFilters.Add(rootMeshFilter);
 
-            // If root has mesh directly creates a mesh collider and sets its mesh as owned mesh
-            if (GetComponent<MeshFilter>())
+            // Create CombineInstance array to keep combine data
+            CombineInstance[] combine = new CombineInstance[meshFilters.Count];
+
+            // Get all combine data in the mesh filters.
+            for (int i = 0; i < meshFilters.Count; i++)
             {
-                MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
-                meshCollider.sharedMesh = GetComponent<MeshFilter>().sharedMesh;
-            }
+                MeshFilter meshFilter = meshFilters[i];
 
-            // Else get meshes in the children then combine them for mesh collider
-            else
-            {
-                MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
-                CombineInstance[] combine = new CombineInstance[meshFilters.Length];
-
-                List<Material> materials = new List<Material>(); // Store materials of the sub-meshes
-
-                for (int i = 0; i < meshFilters.Length; i++)
+                // Mesh must be readable 
+                if (meshFilter.sharedMesh.isReadable)
                 {
-                    MeshFilter meshFilter = meshFilters[i];
-
-                    if (meshFilter.sharedMesh.isReadable)
-                    {
-                        combine[i].mesh = meshFilter.sharedMesh;
-                        combine[i].transform = meshFilter.transform.localToWorldMatrix;
-
-                        // Store the material of the sub-mesh
-                        MeshRenderer renderer = meshFilter.GetComponent<MeshRenderer>();
-                        if (renderer != null && renderer.sharedMaterials != null) materials.AddRange(renderer.sharedMaterials);
-                    }
-                    else Debug.LogWarning("Mesh is not readable: " + meshFilter.name);
+                    combine[i].mesh = meshFilter.sharedMesh;
+                    combine[i].transform = meshFilter.transform.localToWorldMatrix;
                 }
-
-                Mesh combinedMesh = new Mesh();
-                combinedMesh.CombineMeshes(combine, true, true, false);
-
-                MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
-                meshCollider.sharedMesh = combinedMesh;
-            }
-        }
-
-        private void ScaleToVolume()
-        {
-            MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
-
-            float totalVolume = 0f;
-
-            // Calculate the total volume of the selected model
-            foreach (MeshRenderer renderer in meshRenderers)
-            {
-                Mesh mesh = renderer.gameObject.GetComponent<MeshFilter>().sharedMesh;
-                Vector3 scale = renderer.transform.lossyScale;
-
-                float meshVolume = mesh.bounds.size.x * mesh.bounds.size.y * mesh.bounds.size.z;
-                float scaledVolume = meshVolume * scale.x * scale.y * scale.z;
-
-                totalVolume += scaledVolume;
+                else Debug.LogWarning("Mesh is not readable: " + meshFilter.name + " in " + gameObject.name);
             }
 
-            // Calculate the scaling factor to achieve a volume of 1
-            float scaleFactor = Size / totalVolume;
+            Mesh combinedMesh = new Mesh();
+            combinedMesh.CombineMeshes(combine, false, true, false);
 
-            // Apply the scaling factor to the selected model
-            transform.localScale *= Mathf.Pow(scaleFactor, 1f / 3f); // Cube root to maintain proportions
-        }
+            // ------------ Create Box Collider ------------
 
-        private void CreateRimMaterials(Transform parentTransform)
-        {
-            if (parentTransform == transform)
-            {
-                MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+            // Get bounds of the combined mesh
+            Bounds bounds = combinedMesh.bounds;
 
-                if (meshRenderer != null)
-                {
-                    var orjMaterials = meshRenderer.sharedMaterials;
+            // Create Box Collider
+            BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
+            boxCollider.size =  new Vector3(0.8f * bounds.size.x, bounds.size.y, 0.8f * bounds.size.z) ;
+            boxCollider.center = bounds.center;
+            boxCollider.isTrigger = true;
 
-                    List<Material> rimMaterialList = new();
 
-                    foreach (var material in orjMaterials)
-                    {
-                        Material newRimMaterial = new(rimLightMaterial);
-                        newRimMaterial.name = "Rim_" + material.name;
+            // ------------ Resize Prefab ------------
 
-                        if (material.HasProperty("_Color"))
-                        {
-                            Color color = material.GetColor("_Color");
-                            newRimMaterial.SetColor("_Color", color);
-                        }
+            // Find the largest dimension (x, y, or z)
+            float largestDimension = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
 
-                        if (material.HasProperty("_MainTex"))
-                        {
-                            Texture mainTexture = material.GetTexture("_MainTex");
-                            newRimMaterial.SetTexture("_MainTex", mainTexture);
-                        }
+            // Calculate the scaling factor to match the largest dimension with the cube's edge length
+            float scaleFactor = Size / largestDimension;
 
-                        if (material.HasProperty("_BumpMap"))
-                        {
-                            Texture bumpMap = material.GetTexture("_BumpMap");
-                            newRimMaterial.SetTexture("_BumpMap", bumpMap);
-                        }
+            // Apply the scaling factor to the prefab
+            transform.localScale = scaleFactor * Vector3.one;
 
-                        rimMaterialList.Add(newRimMaterial);
-                    }
 
-                    var rimMaterials = rimMaterialList.ToArray();
-
-                    materials.Add(new()
-                    {
-                        owner = transform,
-                        originalMaterials = orjMaterials,
-                        rimMaterials = rimMaterials
-                    });
-                }
-            }
-
-            foreach (Transform child in parentTransform)
-            {
-                MeshRenderer meshRenderer = child.GetComponent<MeshRenderer>();
-
-                if (meshRenderer == null) continue;
-
-                var orjMaterials = meshRenderer.sharedMaterials;
-
-                List<Material> rimMaterialList = new();
-
-                foreach (var material in orjMaterials)
-                {
-                    Material newRimMaterial = new(rimLightMaterial);
-                    newRimMaterial.name = "Rim_" + material.name;
-
-                    if (material.HasProperty("_Color"))
-                    {
-                        Color color = material.GetColor("_Color");
-                        newRimMaterial.SetColor("_Color", color);
-                    }
-
-                    if (material.HasProperty("_MainTex"))
-                    {
-                        Texture mainTexture = material.GetTexture("_MainTex");
-                        newRimMaterial.SetTexture("_MainTex", mainTexture);
-                    }
-
-                    if (material.HasProperty("_BumpMap"))
-                    {
-                        Texture bumpMap = material.GetTexture("_BumpMap");
-                        newRimMaterial.SetTexture("_BumpMap", bumpMap);
-                    }
-
-                    rimMaterialList.Add(newRimMaterial);
-                }
-
-                var rimMaterials = rimMaterialList.ToArray();
-
-                materials.Add(new()
-                {
-                    owner = child,
-                    originalMaterials = orjMaterials,
-                    rimMaterials = rimMaterials
-                });
-
-                if (child.childCount > 0) CreateRimMaterials(child);
-                
-            }
+            
         }
     }
 }

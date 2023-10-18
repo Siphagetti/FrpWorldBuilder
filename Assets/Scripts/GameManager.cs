@@ -11,6 +11,9 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(this);
 
+        gameObject.AddComponent<CoroutineHandler>();
+
+
         new SaveManager(); // Initialize Save Manager.
         new ServiceManager(); // Initialize services.
 

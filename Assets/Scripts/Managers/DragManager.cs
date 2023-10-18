@@ -9,7 +9,6 @@ namespace Prefab
         private float CamDist { get; set; } = 10f;
 
         private GameObject _draggingObj;
-        private GameObject _hoveringObj;
 
         // Mouse offset where cursor begin to drag the '_draggingObj'
         private Vector3 _mouseOffset;
@@ -17,55 +16,9 @@ namespace Prefab
         // Target layer for raycast.
         public LayerMask targetLayer;
 
-        // Requires for creating rim materials of prefabs.
-        // Set this to Prefab.rimLightMaterial on awake 
-        public Material rimLightMaterial;
-
-
-        private void FixedUpdate()
-        {
-            if (!Input.GetKey(KeyCode.LeftControl))
-            {
-                if (_hoveringObj)
-                {
-                    _hoveringObj.GetComponent<Prefab>().ChangeMaterialsAsOrj();
-                    _hoveringObj = null;
-                }
-                return;
-            }
-
-            if (_draggingObj != null) return;
-
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer))
-            {
-                var prefab = hit.collider.gameObject;
-
-                if (prefab != _hoveringObj)
-                {
-                    _hoveringObj?.GetComponent<Prefab>().ChangeMaterialsAsOrj();
-                    _hoveringObj = prefab;
-                    _hoveringObj.GetComponent<Prefab>().ChangeMaterialsAsRim();
-                }
-            }
-            else if (_hoveringObj)
-            {
-                _hoveringObj.GetComponent<Prefab>().ChangeMaterialsAsOrj();
-                _hoveringObj = null;
-            }
-        }
-
         private void Update()
         {
-            if (Input.GetMouseButtonUp(0) && _draggingObj != null) 
-            { 
-                _draggingObj.GetComponent<Prefab>().ChangeMaterialsAsOrj(); 
-                _draggingObj = null;
-                _hoveringObj = null;
-            }
-            
+            if (Input.GetMouseButtonUp(0) && _draggingObj != null) _draggingObj = null;
 
             if (_draggingObj != null)
             {
@@ -99,8 +52,6 @@ namespace Prefab
 
             _draggingObj = obj;
             _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
-
-            obj.GetComponent<Prefab>().ChangeMaterialsAsRim();
         }
 
         public void removeDraggingObj()
@@ -111,7 +62,6 @@ namespace Prefab
         private void Awake()
         {
             Thumbnail.dragManager = this;
-            Prefab.rimLightMaterial = rimLightMaterial;
         }
     }
 }

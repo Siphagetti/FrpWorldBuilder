@@ -529,6 +529,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _categoryScrollRect: {fileID: 2034821798}
   _prefabCategory: {fileID: 1127631284097948487, guid: 8cc96201c69eb9b40a64b6c06606f6b4, type: 3}
+  ThumbnailPhotoShoot: {fileID: 1927654209848557628, guid: ac266b417fd89fd45852425c71924239, type: 3}
   _thumbnailScrollRect: {fileID: 333686787}
   _prefabThumbnail: {fileID: 802350606504951043, guid: e9bf3b47cf9cb6546bcca9452aba98e3, type: 3}
   _prefabThumbnailContent: {fileID: 6818694197674508732, guid: a520e2c4caf487a45883f520ce7174cd, type: 3}
@@ -594,7 +595,6 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
-  rimLightMaterial: {fileID: 2100000, guid: 705420cd65f96d54dabd4283aca2b1de, type: 2}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -631,7 +631,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
