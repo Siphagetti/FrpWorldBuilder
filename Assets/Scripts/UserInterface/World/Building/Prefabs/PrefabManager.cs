@@ -11,6 +11,9 @@ namespace Prefab
 {
     internal class PrefabManager : MonoBehaviour
     {
+
+        [SerializeField] Button _importButton;
+
         [Header("Category Parameters")]
 
         [SerializeField] private ScrollRect _categoryScrollRect;
@@ -37,7 +40,8 @@ namespace Prefab
         private void Start()
         {
             Thumbnail.OwnerUIPanelRect = GetComponent<RectTransform>();
-            CoroutineHandler.NewCoroutine(Initialize());
+            GameManager.NewCoroutine(Initialize());
+            _importButton.onClick.AddListener(ImportAssetBundle);
         }
 
         private IEnumerator Initialize()
@@ -71,7 +75,7 @@ namespace Prefab
         private void ChangeCategory(string category)
         {
             // Check the category exists.
-            if (!_thumbnailContentDict.ContainsKey(category)) { global::Log.Logger.Log_Error("category_not_exists", category); return; }
+            if (!_thumbnailContentDict.ContainsKey(category)) { Log.Logger.Log_Error("category_not_exists", category); return; }
 
             // Disappear previous active thumbnail content.
             _thumbnailContentDict[_activeCategory].SetActive(false);
@@ -114,7 +118,7 @@ namespace Prefab
             StartCoroutine(CreateThumbnails(prefabEntites, newContent.transform));
         }
 
-        private IEnumerator CreateThumbnails(List<GameObject> prefabs, Transform content)
+        private IEnumerator CreateThumbnails(GameObject[] prefabs, Transform content)
         {
             if (prefabs != null)
             {
@@ -166,6 +170,12 @@ namespace Prefab
             }
         }
 
-        
+        private async void ImportAssetBundle()
+        {
+            var prefabsInBundle  = await ServiceManager.GetService<IPrefabService>().ImportAssetBundle(_activeCategory);
+            if (prefabsInBundle == null) return;
+            
+            GameManager.NewCoroutine(CreateThumbnails(prefabsInBundle, _thumbnailContentDict[_activeCategory].transform));
+        }
     }
 }

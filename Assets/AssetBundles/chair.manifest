@@ -1,15 +1,15 @@
 ManifestFileVersion: 0
-CRC: 2281517509
+CRC: 3103813669
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: d706a99c657a05b175a1fe0d09d4b680
+    Hash: 711692f1e6ed93b49611d4ffa6705dcf
   TypeTreeHash:
     serializedVersion: 2
     Hash: 0f9fba26cbb38215f317d1fd6b1954a0
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: d706a99c657a05b175a1fe0d09d4b680
+    Hash: 711692f1e6ed93b49611d4ffa6705dcf
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -28,5 +28,5 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
-- Assets/Prefabs/GameObjects/TestMesh.prefab
+- Assets/Prefabs/GameObjects/modern chair 11 obj.prefab
 Dependencies: []

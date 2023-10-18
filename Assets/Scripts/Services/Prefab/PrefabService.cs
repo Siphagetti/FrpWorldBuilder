@@ -31,41 +31,38 @@ namespace Prefab
             return categories;
         }
 
-        public async Task<List<GameObject>> ImportAssetBundle(string category)
+        public async Task<GameObject[]> ImportAssetBundle(string category)
         {
             var extensionList = new[] {
-                new ExtensionFilter("UnityAssetBundle", "")
+                new ExtensionFilter("Unity Asset Bundle", "*")
             };
 
             // Get asset bundles to be imported.
-            var assetBundlePaths = StandaloneFileBrowser.OpenFilePanel("Select Asset Bundle", "", extensionList, true);
+            var assetBundlePaths = StandaloneFileBrowser.OpenFilePanel("Select Asset Bundle", "", extensionList, false);
 
             if (assetBundlePaths == null || assetBundlePaths.Length == 0) return null;
 
+            var assetBundlePath = assetBundlePaths[0];
+
             var categoryFolderPath = Path.Combine(_rootFolderPath, category);
 
-            // For each asset bundle path call 'LoadAssetBundle' function and get each result as list.
-            // Also copy the asset bundle into the category folder.
-            var loadBundles = assetBundlePaths.Select(async bundlePath =>
+            var fileName = Path.GetFileName(assetBundlePath);
+            // If there is file that has the same name with the importing asset bundle cancel import and return null.
+            if (File.Exists(Path.Combine(categoryFolderPath, fileName)))
             {
-                try
-                {
-                    GameObject[] prefabs = await LoadAssetBundle(bundlePath);
-                    Task.Run(() => File.Copy(bundlePath, categoryFolderPath));
-                    return prefabs;
-                }
-                catch (Exception e) { Log.Logger.Log_Error("asset_bundle_load_error", e.Message); return new GameObject[0]; }
-            }).ToList();
+                Log.Logger.Log_Error("asset_bundle_exists", fileName, category);
+                return null;
+            }
 
-            List<GameObject> allPrefabs = new();
+            var prefabs = await LoadAssetBundle(assetBundlePath);
 
-            // Get together all loaded prefabs in the category's folder.
-            foreach (var loadBundle in loadBundles) allPrefabs.AddRange(await loadBundle);
+            // Copy the asset bundle into the category folder.
+            if (prefabs != null) File.Copy(assetBundlePath, Path.Combine(categoryFolderPath, fileName));
 
-            return allPrefabs;
+            return prefabs;
         }
 
-        public async Task<List<GameObject>> LoadPrefabsInAssetBundlesForCategory(string category)
+        public async Task<GameObject[]> LoadPrefabsInAssetBundlesForCategory(string category)
         {
             // Get category folder path
             var categoryFolderPath = Path.Combine(_rootFolderPath, category);
@@ -89,7 +86,7 @@ namespace Prefab
             // Get together all loaded prefabs in the category's folder.
             foreach (var loadBundle in loadBundles) allPrefabs.AddRange(await loadBundle);
 
-            return allPrefabs;
+            return allPrefabs.ToArray();
         }
 
 
@@ -105,13 +102,24 @@ namespace Prefab
 
             request.completed += operation =>
             {
+
                 AssetBundle assetBundle = request.assetBundle;
+                if (assetBundle == null)
+                {
+                    Log.Logger.Log_Error("asset_bundle_loadled_already", bundlePath);
+                    tcs.SetResult(null);
+                    return;
+                }
+
                 var prefabs = assetBundle.LoadAllAssets<GameObject>();
-                prefabs.ToList().ForEach(p => {
+
+                prefabs.ToList().ForEach(p =>
+                {
                     Prefab prefabComponent = p.AddComponent<Prefab>();
                     prefabComponent.Initialize();
                 });
                 tcs.SetResult(prefabs);
+
             };
 
             // Handle any errors or timeouts

@@ -43,6 +43,18 @@
     {
       "key": "importing",
       "text": "Importing..."
+    },
+    {
+      "key": "asset_bundle_load_error",
+      "text": "An error occured while loading asset bundle.\nMessage: {0}"
+    },
+    {
+      "key": "asset_bundle_exists",
+      "text": "Asset bundle named {0} already exits in {1} category."
+    },
+    {
+      "key": "asset_bundle_loadled_already",
+      "text": "The AssetBundle {0} can't be loaded because another AssetBundle with the same files is already loaded."
     }
   ]
 }
