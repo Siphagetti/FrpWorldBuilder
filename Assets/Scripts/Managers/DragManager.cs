@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 namespace Prefab
 {
@@ -18,7 +19,11 @@ namespace Prefab
 
         private void Update()
         {
-            if (Input.GetMouseButtonUp(0) && _draggingObj != null) _draggingObj = null;
+            if (Input.GetMouseButtonUp(0) && _draggingObj != null)
+            {
+                _draggingObj = null;
+                RevealPanel();
+            }
 
             if (_draggingObj != null)
             {
@@ -38,6 +43,8 @@ namespace Prefab
                     {
                         _draggingObj = hit.collider.gameObject;
                         _mouseOffset = _draggingObj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
+
+                        HidePanel();
                     }
                 }
             }
@@ -63,5 +70,73 @@ namespace Prefab
         {
             Thumbnail.dragManager = this;
         }
+
+        private void Start()
+        {
+            _yPos = (int)GetComponent<RectTransform>().anchoredPosition.y;
+            Debug.Log(_yPos);
+        }
+
+        #region Hide or Reveal Panel
+
+        private int _yPos;
+        private float _duration = 0.3f;
+
+        Coroutine HideOrRevealCoorutine;
+
+        private void HidePanel()
+        {
+            if (HideOrRevealCoorutine != null)
+                StopCoroutine(HideOrRevealCoorutine);
+
+            HideOrRevealCoorutine = StartCoroutine(HidePanelCoroutine());
+        }
+
+        private void RevealPanel()
+        {
+            if (HideOrRevealCoorutine != null)
+                StopCoroutine(HideOrRevealCoorutine);
+
+            HideOrRevealCoorutine = StartCoroutine(RevealPanelCoroutine());
+        }
+
+        IEnumerator HidePanelCoroutine()
+        {
+            RectTransform rect = GetComponent<RectTransform>();
+
+            Vector2 startPos = rect.anchoredPosition;
+            Vector2 targetPos = new Vector2(startPos.x, -_yPos);
+
+            for (float t = 0; t < 1.0f; t += Time.deltaTime / _duration)
+            {
+                rect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
+                yield return null;
+            }
+
+            rect.anchoredPosition = targetPos; // Ensure the final position is exactly at the target
+
+            HideOrRevealCoorutine = null;
+        }
+
+        IEnumerator RevealPanelCoroutine()
+        {
+            RectTransform rect = GetComponent<RectTransform>();
+
+            Vector2 startPos = rect.anchoredPosition;
+            Vector2 targetPos = new Vector2(startPos.x, _yPos);
+             // Adjust the duration as needed
+
+            for (float t = 0; t < 1.0f; t += Time.deltaTime / _duration)
+            {
+                rect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
+                yield return null;
+            }
+
+            rect.anchoredPosition = targetPos; // Ensure the final position is exactly at the target
+
+            HideOrRevealCoorutine = null;
+        }
+
+        #endregion
     }
 }

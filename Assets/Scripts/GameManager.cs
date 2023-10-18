@@ -32,8 +32,8 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get; private set; } = null;
 
-    public static void NewCoroutine(IEnumerator coroutine)
+    public static Coroutine NewCoroutine(IEnumerator coroutine)
     {
-        Instance._coroutineRunner.StartCoroutine(coroutine);
+        return Instance._coroutineRunner.StartCoroutine(coroutine);
     }
 }
