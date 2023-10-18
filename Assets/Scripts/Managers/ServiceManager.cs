@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Services
 {
     public class ServiceManager
+
     {
         private static ServiceManager _instance;
         private Dictionary<Type, IBaseService> _services = new Dictionary<Type, IBaseService>();

@@ -69,6 +69,11 @@ namespace Prefab
     public class Prefab : MonoBehaviour
     {
         public static float Size { get; } = 5.0f;
+
+        [SerializeField] private bool _rootHasRendererOriginally = false;
+        [SerializeField] private Material[] _originalMaterials;
+        [SerializeField] private Material[] _rimMaterials;
+
         public void Initialize()
         {
             gameObject.layer = LayerMask.NameToLayer("Draggable");
@@ -79,6 +84,7 @@ namespace Prefab
             List<MeshFilter> meshFilters = GetComponentsInChildren<MeshFilter>().ToList();
             var rootMeshFilter = GetComponent<MeshFilter>();
             if (rootMeshFilter) meshFilters.Add(rootMeshFilter);
+            
 
             // Create CombineInstance array to keep combine data
             CombineInstance[] combine = new CombineInstance[meshFilters.Count];
@@ -124,7 +130,56 @@ namespace Prefab
             transform.localScale = scaleFactor * Vector3.one;
 
 
-            
+            // ------------ Create Rim Materials ------------
+
+            if (GetComponent<MeshFilter>() == null) 
+                gameObject.AddComponent<MeshFilter>().sharedMesh = combinedMesh;
+
+            Shader shader = Shader.Find("Custom/Ghost Rim");
+
+            if (GetComponent<MeshRenderer>() == null)
+            {
+                _rootHasRendererOriginally = false;
+                MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
+                _rimMaterials = new Material[meshRenderers.Length];
+                for (int i = 0; i < meshRenderers.Length; i++) _rimMaterials[i] = new Material(shader);
+
+                MeshRenderer rootRenderer = gameObject.AddComponent<MeshRenderer>();
+                rootRenderer.sharedMaterials = _rimMaterials;
+            }
+            else
+            {
+                _rootHasRendererOriginally = true;
+                _originalMaterials = GetComponent<MeshRenderer>().sharedMaterials;
+                _rimMaterials = new Material[_originalMaterials.Length];
+                for (int i = 0; i < _originalMaterials.Length; i++) _rimMaterials[i] = new Material(shader);
+            }
+
+            DontShine();
+        }
+
+        public void Shine()
+        {
+            MeshRenderer renderer = GetComponent<MeshRenderer>();
+
+            if (!_rootHasRendererOriginally)
+            {
+                foreach (var item in GetComponentsInChildren<MeshRenderer>()) item.enabled = false;
+                renderer.enabled = true;
+            }
+            else renderer.materials = _rimMaterials;
+        }
+
+        public void DontShine()
+        {
+            MeshRenderer renderer = GetComponent<MeshRenderer>();
+
+            if (!_rootHasRendererOriginally)
+            {
+                foreach (var item in GetComponentsInChildren<MeshRenderer>()) item.enabled = true;
+                renderer.enabled = false;
+            }
+            else renderer.materials = _originalMaterials;
         }
     }
 }

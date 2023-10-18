@@ -21,6 +21,7 @@ namespace Prefab
         {
             if (Input.GetMouseButtonUp(0) && _draggingObj != null)
             {
+                _draggingObj.GetComponent<Prefab>().DontShine();
                 _draggingObj = null;
                 RevealPanel();
             }
@@ -44,6 +45,8 @@ namespace Prefab
                         _draggingObj = hit.collider.gameObject;
                         _mouseOffset = _draggingObj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
 
+                        _draggingObj.GetComponent<Prefab>().Shine();
+
                         HidePanel();
                     }
                 }
@@ -59,6 +62,8 @@ namespace Prefab
 
             _draggingObj = obj;
             _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
+
+            _draggingObj.GetComponent<Prefab>().Shine();
         }
 
         public void removeDraggingObj()
@@ -69,12 +74,7 @@ namespace Prefab
         private void Awake()
         {
             Thumbnail.dragManager = this;
-        }
-
-        private void Start()
-        {
             _yPos = (int)GetComponent<RectTransform>().anchoredPosition.y;
-            Debug.Log(_yPos);
         }
 
         #region Hide or Reveal Panel
