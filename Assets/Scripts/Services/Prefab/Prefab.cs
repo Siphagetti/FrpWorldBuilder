@@ -70,14 +70,12 @@ namespace Prefab
     {
         public static float Size { get; } = 5.0f;
 
-        [SerializeField] private bool _rootHasRendererOriginally = false;
-        [SerializeField] private Material[] _originalMaterials;
+        [SerializeField] private float _scaleFactor;
+        [SerializeField] private Mesh _combinedMesh;
         [SerializeField] private Material[] _rimMaterials;
 
         public void Initialize()
         {
-            gameObject.layer = LayerMask.NameToLayer("Draggable");
-
             // ------------ Combine Mesh ------------
 
             // Get all mesh filters in the prefab.
@@ -103,20 +101,11 @@ namespace Prefab
                 else Debug.LogWarning("Mesh is not readable: " + meshFilter.name + " in " + gameObject.name);
             }
 
-            Mesh combinedMesh = new Mesh();
-            combinedMesh.CombineMeshes(combine, false, true, false);
-
-            // ------------ Create Box Collider ------------
+            _combinedMesh = new Mesh();
+            _combinedMesh.CombineMeshes(combine, false, true, false);
 
             // Get bounds of the combined mesh
-            Bounds bounds = combinedMesh.bounds;
-
-            // Create Box Collider
-            BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
-            boxCollider.size =  new Vector3(0.8f * bounds.size.x, bounds.size.y, 0.8f * bounds.size.z) ;
-            boxCollider.center = bounds.center;
-            boxCollider.isTrigger = true;
-
+            Bounds bounds = _combinedMesh.bounds;
 
             // ------------ Resize Prefab ------------
 
@@ -124,62 +113,55 @@ namespace Prefab
             float largestDimension = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
 
             // Calculate the scaling factor to match the largest dimension with the cube's edge length
-            float scaleFactor = Size / largestDimension;
+            _scaleFactor = Size / largestDimension;
 
             // Apply the scaling factor to the prefab
-            transform.localScale = scaleFactor * Vector3.one;
+            transform.localScale = _scaleFactor * Vector3.one;
 
 
             // ------------ Create Rim Materials ------------
 
-            if (GetComponent<MeshFilter>() == null) 
-                gameObject.AddComponent<MeshFilter>().sharedMesh = combinedMesh;
+            List<MeshRenderer> meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
+            var rootRenderer = GetComponent<MeshRenderer>();
+            if (rootRenderer != null) meshRenderers.Add(rootRenderer);
 
+            _rimMaterials = new Material[meshRenderers.Count];
             Shader shader = Shader.Find("Custom/Ghost Rim");
-
-            if (GetComponent<MeshRenderer>() == null)
-            {
-                _rootHasRendererOriginally = false;
-                MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
-                _rimMaterials = new Material[meshRenderers.Length];
-                for (int i = 0; i < meshRenderers.Length; i++) _rimMaterials[i] = new Material(shader);
-
-                MeshRenderer rootRenderer = gameObject.AddComponent<MeshRenderer>();
-                rootRenderer.sharedMaterials = _rimMaterials;
-            }
-            else
-            {
-                _rootHasRendererOriginally = true;
-                _originalMaterials = GetComponent<MeshRenderer>().sharedMaterials;
-                _rimMaterials = new Material[_originalMaterials.Length];
-                for (int i = 0; i < _originalMaterials.Length; i++) _rimMaterials[i] = new Material(shader);
-            }
-
-            DontShine();
+            for (int i = 0; i < meshRenderers.Count; i++) _rimMaterials[i] = new Material(shader);
         }
 
-        public void Shine()
+        public GameObject CreateWrapper(Vector3 createPos)
         {
-            MeshRenderer renderer = GetComponent<MeshRenderer>();
+            // Instantiate prefab
+            GameObject spawnedPrefab = Instantiate(gameObject);
 
-            if (!_rootHasRendererOriginally)
-            {
-                foreach (var item in GetComponentsInChildren<MeshRenderer>()) item.enabled = false;
-                renderer.enabled = true;
-            }
-            else renderer.materials = _rimMaterials;
-        }
+            // Create wrapper
+            GameObject wrapper = new GameObject("Wrapper_" + name);
+            wrapper.layer = LayerMask.NameToLayer("Draggable");
+            wrapper.transform.position = createPos;
+            wrapper.transform.localScale = _scaleFactor * Vector3.one;
 
-        public void DontShine()
-        {
-            MeshRenderer renderer = GetComponent<MeshRenderer>();
+            // Make prefab child of the wrapper
+            wrapper.transform.SetParent(spawnedPrefab.transform.parent);
+            spawnedPrefab.transform.SetParent(wrapper.transform);
+            spawnedPrefab.transform.localPosition = Vector3.zero;
 
-            if (!_rootHasRendererOriginally)
-            {
-                foreach (var item in GetComponentsInChildren<MeshRenderer>()) item.enabled = true;
-                renderer.enabled = false;
-            }
-            else renderer.materials = _originalMaterials;
+            // Add mesh components to the wrapper
+            wrapper.AddComponent<MeshFilter>().mesh = _combinedMesh;
+            wrapper.AddComponent<MeshRenderer>().materials = _rimMaterials;
+
+            // Create box collider
+
+            // Get bounds of the combined mesh
+            Bounds bounds = _combinedMesh.bounds;
+
+            // Create Box Collider
+            BoxCollider boxCollider = wrapper.AddComponent<BoxCollider>();
+            boxCollider.size = new Vector3(0.8f * bounds.size.x, bounds.size.y, 0.8f * bounds.size.z);
+            boxCollider.center = bounds.center;
+            boxCollider.isTrigger = true;
+
+            return wrapper;
         }
     }
 }

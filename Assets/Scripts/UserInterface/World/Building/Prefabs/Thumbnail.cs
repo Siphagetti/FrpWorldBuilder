@@ -7,7 +7,7 @@ namespace Prefab
     public class Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         public static RectTransform OwnerUIPanelRect { get; set; }
-        public static DragManager dragManager { get; set; }
+        public static PrefabDragManager dragManager { get; set; }
 
         [SerializeField] private RawImage _image;
         [SerializeField] private TMPro.TMP_Text _text;
@@ -44,7 +44,7 @@ namespace Prefab
             _hideUI = false;
 
             // Keep instantiated prefab at invisible position.
-            _spawnedPrefab = Instantiate(_prefab, _prefabSpawnPos, Quaternion.identity);
+            _spawnedPrefab = _prefab.GetComponent<Prefab>().CreateWrapper(_prefabSpawnPos);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -66,7 +66,7 @@ namespace Prefab
                 if (_hideUI) return;
 
                 // Set instantiated prefab as dragging object of Drag Manager.
-                dragManager.SetDraggingObj(_spawnedPrefab);
+                dragManager.SetSelectedObject(_spawnedPrefab);
 
                 _image.gameObject.SetActive(false);
                 _text.gameObject.SetActive(false);
@@ -80,7 +80,7 @@ namespace Prefab
                 // Set instantiated prefab's position as '_prefabSpawnPos' back  
                 // and unassign dragging object
                 _spawnedPrefab.transform.position = _prefabSpawnPos;
-                dragManager.removeDraggingObj();
+                dragManager.RemoveSelectedObject();
 
                 _image.gameObject.SetActive(true);
                 _text.gameObject.SetActive(true);
