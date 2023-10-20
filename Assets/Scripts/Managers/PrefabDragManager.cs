@@ -10,7 +10,7 @@ namespace Prefab
         private float CamDist { get; set; } = 10f;
 
         private bool _isDragging;
-        private GameObject _selectedObject;
+        public static GameObject SelectedObject { get; private set; }
 
         // Mouse offset where cursor begin to drag the '_draggingObj'
         private Vector3 _mouseOffset;
@@ -39,7 +39,7 @@ namespace Prefab
             Vector3 screenPosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist);
             Vector3 newPosition = Camera.main.ScreenToWorldPoint(screenPosition);
 
-            _selectedObject.transform.position = newPosition + _mouseOffset;
+            SelectedObject.transform.position = newPosition + _mouseOffset;
         }
 
         private void HandleMouseClick()
@@ -48,7 +48,7 @@ namespace Prefab
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer)) SelectObject(hit.collider.gameObject);
-            else if (_selectedObject != null) DeselectObject();
+            else if (SelectedObject != null) DeselectObject();
 
         }
 
@@ -56,8 +56,8 @@ namespace Prefab
         {
             DontShineMesh(); // If there is a previously selected mesh, stop its shining.
 
-            _selectedObject = obj;
-            _mouseOffset = _selectedObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
+            SelectedObject = obj;
+            _mouseOffset = SelectedObject.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
 
             ShineMesh();
             HidePanel();
@@ -68,7 +68,7 @@ namespace Prefab
         private void DeselectObject()
         {
             DontShineMesh();
-            _selectedObject = null;
+            SelectedObject = null;
             _isDragging = false;
         }
 
@@ -83,7 +83,7 @@ namespace Prefab
 
             DontShineMesh(); // If there is a previous selected mesh stop its shining.
 
-            _selectedObject = obj;
+            SelectedObject = obj;
             _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
             _isDragging = true;
             ShineMesh();
@@ -93,7 +93,7 @@ namespace Prefab
         public void RemoveSelectedObject()
         {
             DontShineMesh();
-            _selectedObject = null;
+            SelectedObject = null;
             _isDragging = false;
         }
 
@@ -105,8 +105,8 @@ namespace Prefab
 
         #region Shine Mesh
 
-        private void ShineMesh() { if (_selectedObject != null) _selectedObject.GetComponent<MeshRenderer>().enabled = true; }
-        private void DontShineMesh() { if (_selectedObject != null) _selectedObject.GetComponent<MeshRenderer>().enabled = false; }
+        private void ShineMesh() { if (SelectedObject != null) SelectedObject.GetComponent<MeshRenderer>().enabled = true; }
+        private void DontShineMesh() { if (SelectedObject != null) SelectedObject.GetComponent<MeshRenderer>().enabled = false; }
 
         #endregion
 

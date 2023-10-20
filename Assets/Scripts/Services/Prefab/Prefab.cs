@@ -68,6 +68,13 @@ namespace Prefab
 {
     public class Prefab : MonoBehaviour
     {
+        /*
+            If prefab loaded recently, it must be Initialized to standardize.
+
+            If the prefab needed to be instantiated, a wrapper should keep the prefab. 
+            So, CreateWrapper functions should be used to instantiate prefab.
+        */
+
         public static float Size { get; } = 5.0f;
 
         [SerializeField] private float _scaleFactor;

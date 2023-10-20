@@ -48,7 +48,7 @@ namespace Prefab
         {
             var categories = ServiceManager.GetService<IPrefabService>().GetCategories();
 
-            List<IEnumerator> coroutines = new();
+            List<IEnumerator> coroutines = new List<IEnumerator>();
 
             foreach (var category in categories)
             {
@@ -58,7 +58,7 @@ namespace Prefab
 
             if (coroutines.Count == 0) yield break;
 
-            // Begin initialize the first content.
+            // Begin initializing the first content.
             yield return StartCoroutine(coroutines[0]);
 
             // Set the initial content as the first content that initialized
@@ -68,54 +68,49 @@ namespace Prefab
             // Initialize the rest of the contents
             for (int i = 1; i < coroutines.Count; i++)
                 yield return StartCoroutine(coroutines[i]);
-
         }
-
 
         private void ChangeCategory(string category)
         {
-            // Check the category exists.
-            if (!_thumbnailContentDict.ContainsKey(category)) { Log.Logger.Log_Error("category_not_exists", category); return; }
+            if (!_thumbnailContentDict.ContainsKey(category))
+            {
+                Log.Logger.Log_Error("category_not_exists", category);
+                return;
+            }
 
-            // Disappear previous active thumbnail content.
+            // Hide the previously active thumbnail content.
             _thumbnailContentDict[_activeCategory].SetActive(false);
 
             // Update active category
             _thumbnailContentDict[category].SetActive(true);
             _activeCategory = category;
 
-            // Set scroll rect's content as current category content
+            // Set scroll rect's content as the current category content
             _thumbnailScrollRect.content = _thumbnailContentDict[category].GetComponent<RectTransform>();
         }
 
         private void CreateCategory(string category)
         {
-            var category_btn = Instantiate(_prefabCategory, _categoryScrollRect.content);
-            category_btn.GetComponentInChildren<TMPro.TMP_Text>().text = category;
-            category_btn.GetComponent<Button>().onClick.AddListener(() => ChangeCategory(category));
+            var categoryBtn = Instantiate(_prefabCategory, _categoryScrollRect.content);
+            categoryBtn.GetComponentInChildren<TMPro.TMP_Text>().text = category;
+            categoryBtn.GetComponent<Button>().onClick.AddListener(() => ChangeCategory(category));
         }
-
 
         private IEnumerator CreateContent(string category)
         {
-            /*
-                Creates a content that keeps thumbnails of 3D assets for the category.
-            */
-
             GameObject newContent = Instantiate(_prefabThumbnailContent, _thumbnailScrollRect.viewport);
             newContent.SetActive(false);
 
             _thumbnailContentDict.Add(category, newContent);
 
-            // Get prefabs those will be shown in the new created content.
             var loadPrefabsTask = ServiceManager.GetService<IPrefabService>().LoadPrefabsInAssetBundlesForCategory(category);
 
             yield return new WaitUntil(() => loadPrefabsTask.IsCompleted);
 
-            var prefabEntites = loadPrefabsTask.Result;
-            if (prefabEntites == null) yield break;
+            var prefabEntities = loadPrefabsTask.Result;
+            if (prefabEntities == null) yield break;
 
-            StartCoroutine(CreateThumbnails(prefabEntites, newContent.transform));
+            yield return CreateThumbnails(prefabEntities, newContent.transform);
         }
 
         private IEnumerator CreateThumbnails(GameObject[] prefabs, Transform content)
@@ -123,42 +118,26 @@ namespace Prefab
             if (prefabs != null)
             {
                 var photoShoot = Instantiate(ThumbnailPhotoShoot);
-
                 Camera camera = photoShoot.transform.GetChild(0).GetComponent<Camera>();
                 camera.aspect = 1;
-
                 Transform prefabLocation = photoShoot.transform.GetChild(1);
 
                 foreach (var prefab in prefabs)
                 {
-                    // Instantiate the prefab
                     GameObject instantiatedPrefab = Instantiate(prefab, prefabLocation);
 
                     GameObject thumbnail = Instantiate(_prefabThumbnail);
                     thumbnail.transform.SetParent(content);
                     thumbnail.transform.localScale = Vector3.one;
-
                     thumbnail.GetComponent<Thumbnail>().SetPrefab(prefab);
 
-                    // Create a new RenderTexture for this prefab
                     RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
                     camera.targetTexture = renderTexture;
-
-                    // Set image's texture as render texture
                     thumbnail.GetComponentInChildren<RawImage>().texture = renderTexture;
-
-                    // Render the camera manually into the render texture
                     camera.Render();
-
-                    // Wait for the next frame
                     yield return null;
-
-                    // Explicitly destroy the instantiated prefab after rendering is complete
                     Destroy(instantiatedPrefab);
-
-                    // Clear the camera's target texture
                     camera.targetTexture = null;
-
                     yield return null;
                 }
 
@@ -172,9 +151,9 @@ namespace Prefab
 
         private async void ImportAssetBundle()
         {
-            var prefabsInBundle  = await ServiceManager.GetService<IPrefabService>().ImportAssetBundle(_activeCategory);
+            var prefabsInBundle = await ServiceManager.GetService<IPrefabService>().ImportAssetBundle(_activeCategory);
             if (prefabsInBundle == null) return;
-            
+
             GameManager.NewCoroutine(CreateThumbnails(prefabsInBundle, _thumbnailContentDict[_activeCategory].transform));
         }
     }
