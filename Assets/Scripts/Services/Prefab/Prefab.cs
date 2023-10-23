@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using System.Collections;
+using World;
+using System.IO;
 
 
 #if UNITY_EDITOR
@@ -77,18 +78,27 @@ namespace Prefab
 
         public static float Size { get; } = 5.0f;
 
+        public string PrefabName { get; private set; }
+        public string BundleName { get; private set; }
+
         [SerializeField] private float _scaleFactor;
         [SerializeField] private Mesh _combinedMesh;
         [SerializeField] private Material[] _rimMaterials;
 
-        public void Initialize()
+        public bool Initialize(string prefabName, string bundleName, string assetBundlePath)
         {
-            CombineMeshes();
+            PrefabName = prefabName;
+            BundleName = bundleName;
+
+            if (!CombineMeshes(assetBundlePath)) return false;
+
             ResizePrefab();
             CreateRimMaterials();
+
+            return true;
         }
 
-        private void CombineMeshes()
+        private bool CombineMeshes(string assetBundlePath)
         {
             // Get all mesh filters in the prefab.
             List<MeshFilter> meshFilters = GetComponentsInChildren<MeshFilter>().ToList();
@@ -111,12 +121,15 @@ namespace Prefab
                 }
                 else
                 {
-                    Debug.LogWarning("Mesh is not readable: " + meshFilter.name + " in " + gameObject.name);
+                    Log.Logger.Log_Fatal("bundle_has_unreadable_mesh", name, Path.GetFileName(assetBundlePath));
+                    Log.Logger.Log_Error("mesh_unreadable", meshFilter.name, gameObject.name);
+                    return false;
                 }
             }
 
             _combinedMesh = new Mesh();
             _combinedMesh.CombineMeshes(combine, false, true, false);
+            return true;
         }
 
         private void ResizePrefab()

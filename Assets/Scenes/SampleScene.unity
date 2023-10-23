@@ -614,6 +614,8 @@ GameObject:
   - component: {fileID: 759196949}
   - component: {fileID: 759196950}
   - component: {fileID: 759196951}
+  - component: {fileID: 759196952}
+  - component: {fileID: 759196953}
   m_Layer: 5
   m_Name: Panel_PrefabManagement
   m_TagString: Untagged
@@ -663,13 +665,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0895267d664d04e9753f32d89b8593, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _importButton: {fileID: 2047944604}
-  _categoryScrollRect: {fileID: 2034821798}
-  _prefabCategory: {fileID: 1127631284097948487, guid: 8cc96201c69eb9b40a64b6c06606f6b4, type: 3}
-  ThumbnailPhotoShoot: {fileID: 1927654209848557628, guid: ac266b417fd89fd45852425c71924239, type: 3}
-  _thumbnailScrollRect: {fileID: 333686787}
-  _prefabThumbnail: {fileID: 802350606504951043, guid: e9bf3b47cf9cb6546bcca9452aba98e3, type: 3}
-  _prefabThumbnailContent: {fileID: 6818694197674508732, guid: a520e2c4caf487a45883f520ce7174cd, type: 3}
 --- !u!114 &759196951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -685,6 +680,38 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
+--- !u!114 &759196952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759196947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4b58f0069d744e4e926cf7ef9edf87e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CategoryContent: {fileID: 1297161848}
+  CategoryButtonPrefab: {fileID: 3610170407961369948, guid: cb7dbf0e2026acf43a78004e6a6d8e91, type: 3}
+  AssetBundlesButtonContainer: {fileID: 2981803399797121397, guid: d7281d598b15721419d614c986c03d6e, type: 3}
+  AssetBundleButtonPrefab: {fileID: 6225409337206763734, guid: b2d57fb6c7c109548a01b5c404d9b88f, type: 3}
+--- !u!114 &759196953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759196947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7b293e904b6e2f4c9131ff37c7cc6b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _thumbnailScroller: {fileID: 333686787}
+  _thumbnailContentPrefab: {fileID: 6818694197674508732, guid: a520e2c4caf487a45883f520ce7174cd, type: 3}
+  _prefabThumbnail: {fileID: 802350606504951043, guid: e9bf3b47cf9cb6546bcca9452aba98e3, type: 3}
+  _thumbnailPhotoShoot: {fileID: 1927654209848557628, guid: ac266b417fd89fd45852425c71924239, type: 3}
 --- !u!1 &881551756
 GameObject:
   m_ObjectHideFlags: 0

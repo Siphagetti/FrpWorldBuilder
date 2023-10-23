@@ -34,7 +34,7 @@
     },
     {
       "key": "save_success",
-      "text": "Saved successfully!"
+      "text": "Saved successfully!\n"
     },
     {
       "key": "import_error",
@@ -45,16 +45,20 @@
       "text": "Importing..."
     },
     {
-      "key": "asset_bundle_load_error",
-      "text": "An error occured while loading asset bundle.\nMessage: {0}"
-    },
-    {
       "key": "asset_bundle_exists",
       "text": "Asset bundle named {0} already exits in {1} category."
     },
     {
-      "key": "asset_bundle_loadled_already",
-      "text": "The AssetBundle {0} can't be loaded because another AssetBundle with the same files is already loaded."
+      "key": "asset_bundle_load_error",
+      "text": "Asset bundle could not be loaded.\nThe reason might be incorrect file type or the asset bundle is already loaded.\n\nPath: {0}"
+    },
+    {
+      "key": "mesh_unreadable",
+      "text": "Mesh is not readable: {0} in {1}."
+    },
+    {
+      "key": "bundle_has_unreadable_mesh",
+      "text": "There is unreadable gameobject named {0} in {1} asset bundle!\nYou may make it readable while importing to Unity Editor."
     }
   ]
 }

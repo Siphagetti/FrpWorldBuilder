@@ -16,8 +16,8 @@ namespace Services
             _instance = this;
 
             // Default services
-            AddService<Prefab.IPrefabService>           (new Prefab.PrefabService());
             AddService<Language.ILanguageService>       (new Language.LanguageService());
+            AddService<Prefab.IPrefabService>           (new Prefab.PrefabService());
             AddService<World.IWorldService>             (new World.WorldService());
         }
 

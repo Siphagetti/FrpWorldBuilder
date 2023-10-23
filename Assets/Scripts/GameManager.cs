@@ -8,6 +8,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private CoroutineRunner _coroutineRunner;
+
     private void Awake()
     {
         if (Instance != null) { Destroy(this); return; }

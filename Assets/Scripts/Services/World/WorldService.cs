@@ -18,10 +18,14 @@ namespace World
         */
 
         // The path that prefab of the gameobject loaded form Resources.
-        public string assetPath;
+        public readonly string assetBundlePath;
+        public readonly string category;
+        public readonly string name;
 
         // Transform of the gameobject in the world.
         public SerializableTransform transform;
+
+        
     }
 
     [Serializable]
@@ -119,25 +123,6 @@ namespace World
         private WorldsData worldsData = new();
 
         #region WorldManagement
-
-        public void CreateNewWorld(string worldName)
-        {
-            if (WorldExists(worldName)) Log.Logger.Log_Fatal("world_exists", worldName);
-
-            SceneManager.CreateScene(worldName);
-            SceneManager.LoadSceneAsync(worldName);
-            worldsData.worlds.Add(new()
-            {
-                name = worldName,
-                dataFile = worldName + ".json"
-            });
-        }
-        public void ChangeWorld(string worldName)
-        {
-            if (!WorldExists(worldName)) Log.Logger.Log_Fatal("world_not_found", worldName);
-
-            SceneManager.LoadSceneAsync(worldName);
-        }
         
         public void SaveWorld() => worldsData.SaveWorld();
         public void LoadWorld() => worldsData.LoadWorld();
