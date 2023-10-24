@@ -1,5 +1,7 @@
 ﻿using Prefab;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
@@ -139,6 +141,8 @@ public class CameraController : MonoBehaviour
 
     private void HandleRotateInput()
     {
+        if (IsCursorOverUIElement()) return;
+
         if (!Input.GetMouseButton(1)) { Cursor.lockState = CursorLockMode.None; return; }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -166,5 +170,30 @@ public class CameraController : MonoBehaviour
         float speed = Input.GetKey(KeyCode.LeftShift) ? _fastZoomSpeed : _zoomSpeed;
         _cameraComponent.fieldOfView -= scrollInput * speed * Time.deltaTime;
         _cameraComponent.fieldOfView = Mathf.Clamp(_cameraComponent.fieldOfView, _minZoom, _maxZoom);
+    }
+
+    private bool IsCursorOverUIElement()
+    {
+        // Check if the mouse cursor is over a UI element
+        if (EventSystem.current != null)
+        {
+            PointerEventData eventData = new PointerEventData(EventSystem.current);
+            eventData.position = Input.mousePosition;
+            List<RaycastResult> results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventData, results);
+
+            // Check if any of the raycast results are UI elements
+            foreach (RaycastResult result in results)
+            {
+                if (result.gameObject.GetComponent<CanvasRenderer>() != null)
+                {
+                    // A UI element was found under the cursor
+                    return true;
+                }
+            }
+        }
+
+        // No UI element was found under the cursor
+        return false;
     }
 }

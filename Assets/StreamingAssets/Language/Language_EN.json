@@ -59,6 +59,22 @@
     {
       "key": "bundle_has_unreadable_mesh",
       "text": "There is unreadable gameobject named {0} in {1} asset bundle!\nYou may make it readable while importing to Unity Editor."
+    },
+    {
+      "key": "cancel",
+      "text": "Cancel"
+    },
+    {
+      "key": "confirm",
+      "text": "Confirm"
+    },
+    {
+      "key": "delete_category",
+      "text": "Are you sure you want to delete {0} category ?"
+    },
+    {
+      "key": "delete_asset_bundle",
+      "text": "Are you sure you want to delete {0} asset bundle ?"
     }
   ]
 }

@@ -146,6 +146,7 @@ GameObject:
   - component: {fileID: 7889127826920869836}
   - component: {fileID: 2357281152517149479}
   - component: {fileID: 3509835479696843760}
+  - component: {fileID: 9166078240388086264}
   m_Layer: 5
   m_Name: BTN_AssetBundle
   m_TagString: Untagged
@@ -255,3 +256,16 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &9166078240388086264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6225409337206763734}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb758a4383b08a4fa006ff66e4836be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _contextMenuPrefab: {fileID: 4772351034163791231, guid: ae9ce41c6d4291f469bee8cfdf9c06fc, type: 3}

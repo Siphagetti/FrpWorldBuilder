@@ -38,14 +38,14 @@ namespace Prefab
             return categories;
         }
 
-        public async Task<Response<Prefab[]>> ImportAssetBundle(string category)
+        public async Task<Response<(string, Prefab[])>> ImportAssetBundle(string category)
         {
             var extensionList = new[] { new ExtensionFilter("File", "*") };
 
             // Get asset bundles to be imported.
             var assetBundlePaths = StandaloneFileBrowser.OpenFilePanel("Select Asset Bundle", "", extensionList, false);
 
-            if (assetBundlePaths == null || assetBundlePaths.Length == 0) return new Response<Prefab[]>() { Success = false };
+            if (assetBundlePaths == null || assetBundlePaths.Length == 0) return new Response<(string, Prefab[])>() { Success = false };
 
             var assetBundlePath = assetBundlePaths[0];
 
@@ -57,21 +57,41 @@ namespace Prefab
             if (File.Exists(Path.Combine(categoryFolderPath, fileName)))
             {
                 Log.Logger.Log_Error("asset_bundle_exists", fileName, category);
-                return new Response<Prefab[]>() { Success = false };
+                return new Response<(string, Prefab[])>() { Success = false };
             }
 
+            // Response has asset bundle name as result.
             var response = await LoadAssetBundle(category, assetBundlePath);
 
-            if (response.Success) File.Copy(assetBundlePath, Path.Combine(categoryFolderPath, fileName));
+            if (!response.Success) return new Response<(string, Prefab[])>() { Success = false };
+
+            File.Copy(assetBundlePath, Path.Combine(categoryFolderPath, fileName));
 
             var prefabs = _prefabRepo.GetPrefabs(category, response.Result);
 
-            return new Response<Prefab[]>() { Success = true, Result = prefabs };
+            return new Response<(string, Prefab[])>() { Success = true, Result = (response.Result, prefabs) };
+        }
+
+        public void DeleteCategory(string category)
+        {
+            _prefabRepo.RemoveCategory(category);
+
+            var folderPath = Path.Combine(_rootFolderPath, category);
+            Directory.Delete(folderPath, true);
+        }
+
+        public void DeleteAssetBundle(string category, string bundleName)
+        {
+            _prefabRepo.RemoveAssetBundle(category, bundleName);
+
+            var filePath = Path.Combine(Path.Combine(_rootFolderPath, category), bundleName);
+            File.Delete(filePath);
         }
 
         private async void LoadAllPrefabs()
         {
             List<Task> loadTasks = new();
+            
             foreach (var category in GetCategories()) loadTasks.Add(LoadAssetBundlesInCategory(category));
 
             await Task.WhenAll(loadTasks);

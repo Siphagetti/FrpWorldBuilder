@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Prefab
 {
@@ -17,6 +18,14 @@ namespace Prefab
             if (_assetBundles.ContainsKey(category))
             {
                 _assetBundles[category][bundleName] = value;
+            }
+        }
+
+        public void RemoveCategory(string category)
+        {
+            if (_assetBundles.ContainsKey(category))
+            {
+                _assetBundles.Remove(category);
             }
         }
 

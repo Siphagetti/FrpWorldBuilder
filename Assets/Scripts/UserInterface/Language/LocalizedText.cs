@@ -27,8 +27,11 @@ namespace Language
         {
             if (_text != null)
             {
-                yield return ServiceManager.GetService<ILanguageService>().GetLocalizedValue(_key);
-                _text.text = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(_key).Current as string;
+                IEnumerator localizedValueCoroutine = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(_key);
+
+                yield return GameManager.NewCoroutine(localizedValueCoroutine);
+
+                if (localizedValueCoroutine.Current is string) _text.text = (string)localizedValueCoroutine.Current;
             }
         }
 

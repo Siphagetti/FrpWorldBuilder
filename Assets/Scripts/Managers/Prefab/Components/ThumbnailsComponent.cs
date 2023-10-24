@@ -23,9 +23,10 @@ namespace Prefab
 
         private Queue<IEnumerator> _createThumbnails = new();
 
-        public GameObject CreateContent(Prefab[] prefabs)
+        public GameObject CreateContent(string bundleName, Prefab[] prefabs)
         {
             GameObject content = Instantiate(_thumbnailContentPrefab, _thumbnailScroller.viewport);
+            content.name = bundleName + " Content";
             if (_currentThumbnailContent == null) ChangeCurrentThumbnailContent(content);
             _createThumbnails.Enqueue(CreateThumbnails(prefabs, content.transform));
             return content;
@@ -81,6 +82,31 @@ namespace Prefab
             thumbnailContent.SetActive(true);
             _currentThumbnailContent = thumbnailContent;
             _thumbnailScroller.content = _currentThumbnailContent.GetComponent<RectTransform>();
+        }
+
+        public void DeleteContents(string[] assetBundles)
+        {
+            int contentCount = _thumbnailScroller.viewport.transform.childCount;
+            int foundContents = 0;
+
+            Transform viewportTransform = _thumbnailScroller.viewport;
+
+            for (int i = 0; i < contentCount; i++) 
+            {
+                GameObject content = viewportTransform.GetChild(i).gameObject;
+
+                for (int j = foundContents; j < assetBundles.Length; j++) 
+                {
+                    if (content.name.Replace(" Content", "") == assetBundles[j])
+                    {
+                        Destroy(content);
+                        foundContents++;
+                        break;
+                    }
+                }
+
+                if (foundContents == assetBundles.Length) return;
+            }
         }
 
         private void Awake()

@@ -154,7 +154,7 @@ namespace Prefab
             if (rootRenderer != null) meshRenderers.Add(rootRenderer);
 
             _rimMaterials = new Material[meshRenderers.Count];
-            Shader shader = Shader.Find("Custom/Ghost Rim");
+            Shader shader = FindObjectOfType<PrefabManager>().rimShader;
 
             for (int i = 0; i < meshRenderers.Count; i++)
             {

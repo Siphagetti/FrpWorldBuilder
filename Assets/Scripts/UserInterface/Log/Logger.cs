@@ -31,7 +31,7 @@ namespace Log
 
         private IEnumerator Log(string key, LogType logType, params object[] args)
         {
-            yield return StartCoroutine(GetText(key, args));
+            yield return GameManager.NewCoroutine(GetText(key, args));
             var enumerator = GetText(key, args);
 
             while (enumerator.MoveNext())
@@ -52,28 +52,28 @@ namespace Log
 
         public static void Log_Track(string key, params object[] args)
         {
-            _instance.StartCoroutine(_instance.Log(key, LogType.Track, args));
+            GameManager.NewCoroutine(_instance.Log(key, LogType.Track, args));
         }
 
         public static void Log_Info(string key, params object[] args)
         {
-            _instance.StartCoroutine(_instance.Log(key, LogType.Info, args));
+            GameManager.NewCoroutine(_instance.Log(key, LogType.Info, args));
 
         }
 
         public static void Log_Warning(string key, params object[] args)
         {
-            _instance.StartCoroutine(_instance.Log(key, LogType.Warning, args));
+            GameManager.NewCoroutine(_instance.Log(key, LogType.Warning, args));
         }
 
         public static void Log_Error(string key, params object[] args)
         {
-            _instance.StartCoroutine(_instance.Log(key, LogType.Error, args));
+            GameManager.NewCoroutine(_instance.Log(key, LogType.Error, args));
         }
 
         public static void Log_Fatal(string key, params object[] args)
         {
-            _instance.StartCoroutine(_instance.Log(key, LogType.Fatal, args));
+            GameManager.NewCoroutine(_instance.Log(key, LogType.Fatal, args));
         }
 
 
@@ -82,7 +82,7 @@ namespace Log
         // Takes a key to return a text in current language
         private IEnumerator GetText(string key, params object[] args)
         {
-            yield return StartCoroutine(ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key));
+            yield return GameManager.NewCoroutine(ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key));
 
             // Get the result from the IEnumerator
             var enumerator = ServiceManager.GetService<ILanguageService>().GetLocalizedValue(key);
