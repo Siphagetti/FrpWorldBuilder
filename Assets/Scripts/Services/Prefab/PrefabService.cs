@@ -141,5 +141,11 @@ namespace Prefab
             _prefabRepo.AddAssetBundle(category, bundle.name, readyPrefabs.ToArray());
             return await Task.FromResult(new Response<string>() { Success = true, Result = bundle.name });
         }
+
+        public void NewCategory(string categoryName)
+        {
+            var newCategoryPath = Path.Combine(_rootFolderPath, categoryName);
+            Directory.CreateDirectory(newCategoryPath);
+        }
     }
 }

@@ -50,7 +50,6 @@ namespace Prefab
                 var thumbnailContainer = _thumbnailsComponent.CreateContent(bundleName, prefabs);
                 _thumbnailsComponent.FillContents();
                 var assetBundleContainer = _categoryComponent.CreateAssetBundleButton(category, bundleName, thumbnailContainer);
-                GameManager.NewCoroutine(AssetBundleContainerRefresh(assetBundleContainer));
             }
         }
 
@@ -108,16 +107,8 @@ namespace Prefab
 
             IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
             prefabService.DeleteAssetBundle(category, bundleName);
-            var container = _categoryComponent.RemoveAssetBundle(category, bundleName);
+            _categoryComponent.RemoveAssetBundle(category, bundleName);
             _thumbnailsComponent.DeleteContents(new string[] { bundleName });
-
-            GameManager.NewCoroutine(AssetBundleContainerRefresh(container));
-        }
-        IEnumerator AssetBundleContainerRefresh(GameObject container)
-        {
-            container?.SetActive(false);
-            yield return null;
-            container?.SetActive(true);
         }
     }
 }

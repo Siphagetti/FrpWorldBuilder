@@ -75,6 +75,18 @@
     {
       "key": "delete_asset_bundle",
       "text": "Are you sure you want to delete {0} asset bundle ?"
+    },
+    {
+      "key": "categories",
+      "text": "Categories"
+    },
+    {
+      "key": "enter_category_name",
+      "text": "Enter category name.."
+    },
+    {
+      "key": "category_exists",
+      "text": "There is already a category named {0}"
     }
   ]
 }
