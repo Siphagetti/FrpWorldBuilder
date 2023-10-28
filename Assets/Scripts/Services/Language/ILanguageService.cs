@@ -7,11 +7,10 @@ namespace Language
 
     internal interface ILanguageService : Services.IBaseService
     {
+        public string GetLocalizedText(string key, params object[] args);
         public void Subscribe(LanguageChangeAction languageChangeAction);
         public void Unsubscribe(LanguageChangeAction languageChangeAction);
-
         public IEnumerator GetLocalizedValue(string key);
-
         public void ChangeLanguage(Language language);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Prefab;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -31,6 +32,7 @@ public class CameraController : MonoBehaviour
     private Vector3 _targetPosition;
     private Camera _cameraComponent;
 
+    private float _targetFieldOfView;
     private Vector2 _smoothMouseInput;
     private Vector2 _currentRotation;
     private Vector2 _rotationDelta;
@@ -38,14 +40,21 @@ public class CameraController : MonoBehaviour
     private bool _isNormalMoving = false;
     private bool _isMovingToPrefab = false;
 
+    private bool _isUIClicked = false;
+
     private void Awake()
     {
         _cameraComponent = GetComponent<Camera>();
         _targetPosition = transform.position;
+        _targetFieldOfView = _cameraComponent.fieldOfView;
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
+        if (Input.GetMouseButtonDown(0)) _isUIClicked = IsCursorOverUIElement();
+
+        if (_isUIClicked) return;
+
         HandleMovementToPrefab();
 
         if (!_isMovingToPrefab)
@@ -57,6 +66,7 @@ public class CameraController : MonoBehaviour
         }
 
         SmoothMovement();
+        SmoothZoom();
     }
 
     private void HandleMovementInput()
@@ -141,8 +151,6 @@ public class CameraController : MonoBehaviour
 
     private void HandleRotateInput()
     {
-        if (IsCursorOverUIElement()) return;
-
         if (!Input.GetMouseButton(1)) { Cursor.lockState = CursorLockMode.None; return; }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -168,32 +176,24 @@ public class CameraController : MonoBehaviour
         if (Mathf.Approximately(scrollInput, 0.0f)) return;
 
         float speed = Input.GetKey(KeyCode.LeftShift) ? _fastZoomSpeed : _zoomSpeed;
-        _cameraComponent.fieldOfView -= scrollInput * speed * Time.deltaTime;
-        _cameraComponent.fieldOfView = Mathf.Clamp(_cameraComponent.fieldOfView, _minZoom, _maxZoom);
+        _targetFieldOfView = _cameraComponent.fieldOfView - scrollInput * speed * Time.deltaTime;
+        _targetFieldOfView = Mathf.Clamp(_targetFieldOfView, _minZoom, _maxZoom);
+    }
+
+    private void SmoothZoom()
+    {
+        if (Mathf.Approximately(Mathf.Abs(_cameraComponent.fieldOfView - _targetFieldOfView), 0.0f))
+            return;
+
+        _cameraComponent.fieldOfView = Mathf.Lerp(_cameraComponent.fieldOfView, _targetFieldOfView, _smoothSpeed * 2);
     }
 
     private bool IsCursorOverUIElement()
     {
-        // Check if the mouse cursor is over a UI element
-        if (EventSystem.current != null)
-        {
-            PointerEventData eventData = new PointerEventData(EventSystem.current);
-            eventData.position = Input.mousePosition;
-            List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventData, results);
-
-            // Check if any of the raycast results are UI elements
-            foreach (RaycastResult result in results)
-            {
-                if (result.gameObject.GetComponent<CanvasRenderer>() != null)
-                {
-                    // A UI element was found under the cursor
-                    return true;
-                }
-            }
-        }
-
-        // No UI element was found under the cursor
-        return false;
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Input.mousePosition;
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+        return results.Count > 0;
     }
 }

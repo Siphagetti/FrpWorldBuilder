@@ -1,4 +1,5 @@
 ﻿using Save;
+using Services;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,13 +40,33 @@ namespace Language
         [SerializeField]
         private string language = Language.EN.ToString();
 
-        private void LoadLocalizedStrings()
+        public string GetLocalizedText(string key, params object[] args)
         {
-            string filePath = Path.Combine(_folderPath, "Language_" + language + ".json");
-            string data = File.ReadAllText(filePath);
-            _languagePackage = JsonUtility.FromJson<LanguagePackage>(data);
+            GameManager.NewCoroutine(GetLocalizedValue(key));
+
+            // Get the result from the IEnumerator
+            var enumerator = GetLocalizedValue(key);
+            while (enumerator.MoveNext())
+            {
+                if (enumerator.Current is string)
+                {
+                    var msg = enumerator.Current as string;
+                    return string.Format(msg, args);
+                }
+            }
+
+            return string.Empty; // You can choose an appropriate default value if needed.
         }
 
+        public void Subscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange += languageChangeAction;
+        public void Unsubscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange -= languageChangeAction;
+
+        public void ChangeLanguage(Language language)
+        {
+            this.language = language.ToString();
+            LoadLocalizedStrings();
+            OnLanguageChange.Invoke();
+        }
         public IEnumerator GetLocalizedValue(string key)
         {
             yield return new WaitUntil(() => _languagePackage != null);
@@ -54,14 +75,11 @@ namespace Language
             else yield return textData.text;
         }
 
-        public void Subscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange += languageChangeAction;
-        public void Unsubscribe(LanguageChangeAction languageChangeAction) => OnLanguageChange -= languageChangeAction; 
-
-        public void ChangeLanguage(Language language)
+        private void LoadLocalizedStrings()
         {
-            this.language = language.ToString();
-            LoadLocalizedStrings();
-            OnLanguageChange.Invoke();
+            string filePath = Path.Combine(_folderPath, "Language_" + language + ".json");
+            string data = File.ReadAllText(filePath);
+            _languagePackage = JsonUtility.FromJson<LanguagePackage>(data);
         }
 
         protected override Task Load(ref List<SaveData> data)

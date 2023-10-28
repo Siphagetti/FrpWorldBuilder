@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,11 +33,15 @@ namespace Prefab
             return content;
         }
 
-        public void FillContents() => GameManager.NewCoroutine(RunCreateThumbnailsCoroutines());
-        private IEnumerator RunCreateThumbnailsCoroutines()
+        public void FillContents()
         {
-            while (_createThumbnails.Count > 0) 
-                yield return GameManager.NewCoroutine(_createThumbnails.Dequeue());
+            GameManager.NewCoroutine(RunCreateThumbnailsCoroutines());
+
+            IEnumerator RunCreateThumbnailsCoroutines()
+            {
+                while (_createThumbnails.Count > 0)
+                    yield return GameManager.NewCoroutine(_createThumbnails.Dequeue());
+            }
         }
 
         private IEnumerator CreateThumbnails(Prefab[] prefabs, Transform content)
@@ -70,15 +75,13 @@ namespace Prefab
 
                 Destroy(photoShoot);
             }
-            else
-            {
-                Debug.LogError("Prefab not found in Resources folder.");
-            }
         }
 
         public void ChangeCurrentThumbnailContent(GameObject thumbnailContent)
         {
-            _currentThumbnailContent?.SetActive(false);
+            if (_currentThumbnailContent != null && !_currentThumbnailContent.IsDestroyed()) 
+                _currentThumbnailContent.SetActive(false);
+
             thumbnailContent.SetActive(true);
             _currentThumbnailContent = thumbnailContent;
             _thumbnailScroller.content = _currentThumbnailContent.GetComponent<RectTransform>();

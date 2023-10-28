@@ -114,7 +114,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 0
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 1400263126765841961}
   m_FillRect: {fileID: 2407015505054060729}
   m_HandleRect: {fileID: 0}
   m_Direction: 0
@@ -271,7 +271,7 @@ GameObject:
   - component: {fileID: 8655105055953569734}
   - component: {fileID: 8128462868158461530}
   - component: {fileID: 1987017958695650673}
-  - component: {fileID: 8032559153465535564}
+  - component: {fileID: 4142386017178576803}
   m_Layer: 5
   m_Name: Log_WorldBuilding
   m_TagString: Untagged
@@ -350,7 +350,7 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &8032559153465535564
+--- !u!114 &4142386017178576803
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -359,12 +359,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 6420094635648596471}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 621f97447a5e3954cb28e31a5c26a16a, type: 3}
+  m_Script: {fileID: 11500000, guid: d617a4eda7368da4ab34cce571ee99ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _slider: {fileID: 2954787205056318318}
-  _disappearTime: 3
-  _fadeDuration: 1
 --- !u!1 &8332645818501623082
 GameObject:
   m_ObjectHideFlags: 0

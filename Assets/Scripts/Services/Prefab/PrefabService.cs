@@ -138,8 +138,13 @@ namespace Prefab
                 if (success) readyPrefabs.Add(prefabComponent);
             });
 
+            _prefabRepo.AddCategory(category);
             _prefabRepo.AddAssetBundle(category, bundle.name, readyPrefabs.ToArray());
-            return await Task.FromResult(new Response<string>() { Success = true, Result = bundle.name });
+
+            string bundleName = bundle.name;
+            bundle.Unload(false);
+
+            return await Task.FromResult(new Response<string>() { Success = true, Result = bundleName });
         }
 
         public void NewCategory(string categoryName)

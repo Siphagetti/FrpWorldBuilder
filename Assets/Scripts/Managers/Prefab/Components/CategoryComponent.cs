@@ -101,7 +101,7 @@ namespace Prefab
             var inputFiled = NewCategoryPanel.GetComponentInChildren<TMPro.TMP_InputField>();
 
             string newCategory = "";
-            var serviceManager = ServiceManager.GetService<IPrefabService>();
+            var prefabService = ServiceManager.GetService<IPrefabService>();
 
             while(!Input.GetKeyDown(KeyCode.Escape))
             {
@@ -109,11 +109,11 @@ namespace Prefab
                 {
                     newCategory = inputFiled.text;
 
-                    if (serviceManager.GetCategories().Contains(newCategory))
+                    if (prefabService.GetCategories().Contains(newCategory))
                         Log.Logger.Log_Error("category_exists", newCategory);
                     else
                     {
-                        serviceManager.NewCategory(newCategory);
+                        prefabService.NewCategory(newCategory);
                         inputFiled.text = "";
                         NewCategoryPanel.SetActive(false);
                         CreateCategory(newCategory);

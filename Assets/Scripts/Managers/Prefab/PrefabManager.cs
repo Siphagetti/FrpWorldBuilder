@@ -49,7 +49,7 @@ namespace Prefab
                 var (bundleName, prefabs) = response.Result;
                 var thumbnailContainer = _thumbnailsComponent.CreateContent(bundleName, prefabs);
                 _thumbnailsComponent.FillContents();
-                var assetBundleContainer = _categoryComponent.CreateAssetBundleButton(category, bundleName, thumbnailContainer);
+                _categoryComponent.CreateAssetBundleButton(category, bundleName, thumbnailContainer);
             }
         }
 
@@ -60,20 +60,8 @@ namespace Prefab
 
         private IEnumerator DeleteCategoryCoroutine(string category)
         {
-            yield return GameManager.NewCoroutine(PopupController.Instance.InstantiatePopup("delete_category", category));
-
-            var enumerator = PopupController.Instance.InstantiatePopup("delete_category", category);
             bool result = false;
-
-            while (enumerator.MoveNext())
-            {
-                if (enumerator.Current is bool)
-                {   
-                    result = (bool)enumerator.Current;
-                    break;
-                }
-            }
-
+            yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_category", category));
             if (result == false) yield break;
 
             IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
@@ -89,20 +77,8 @@ namespace Prefab
 
         private IEnumerator DeleteAssetBundleCoroutine(string category, string bundleName)
         {
-            yield return GameManager.NewCoroutine(PopupController.Instance.InstantiatePopup("delete_asset_bundle", bundleName));
-
-            var enumerator = PopupController.Instance.InstantiatePopup("delete_asset_bundle", bundleName);
             bool result = false;
-
-            while (enumerator.MoveNext())
-            {
-                if (enumerator.Current is bool)
-                {
-                    result = (bool)enumerator.Current;
-                    break;
-                }
-            }
-
+            yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_category", category));
             if (result == false) yield break;
 
             IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
