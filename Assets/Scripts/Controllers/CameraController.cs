@@ -51,7 +51,9 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0)) _isUIClicked = IsCursorOverUIElement();
+        bool isCursorOverUI = IsCursorOverUIElement();
+
+        if (Input.GetMouseButtonDown(0)) _isUIClicked = isCursorOverUI;
 
         if (_isUIClicked) return;
 
@@ -62,7 +64,7 @@ public class CameraController : MonoBehaviour
             HandleMovementInput();
             HandleVerticalMovementInput();
             HandleRotateInput();
-            HandleZoomInput();
+            if (!isCursorOverUI) HandleZoomInput();
         }
 
         SmoothMovement();
