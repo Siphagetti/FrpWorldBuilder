@@ -25,14 +25,6 @@
       "text": "[0} category folder not found in Resources/Assets folder!"
     },
     {
-      "key": "world_exits",
-      "text": "World named as {0} already exists!"
-    },
-    {
-      "key": "world_not_found",
-      "text": "World named as {0} not found!"
-    },
-    {
       "key": "save_success",
       "text": "Saved successfully!\n"
     },
@@ -87,6 +79,54 @@
     {
       "key": "category_exists",
       "text": "There is already a category named {0}"
+    },
+    {
+      "key": "hierarchy_add_new_group",
+      "text": "Add New Group"
+    },
+    {
+      "key": "hierarchy",
+      "text": "Hierarchy"
+    },
+    {
+      "key": "group_exists",
+      "text": "There is already a group named {0}"
+    },
+    {
+      "key": "delete_hierarchy_group",
+      "text": "Are you sure you want to delete {0} group ?"
+    },
+    {
+      "key": "delete_hierarchy_element",
+      "text": "Are you sure you want to delete {0} element ?"
+    },
+    {
+      "key": "delete_hierarchy_group_button",
+      "text": "Delete Hierarchy Group"
+    },
+    {
+      "key": "delete_hierarchy_element_button",
+      "text": "Delete Hierarchy Element"
+    },
+    {
+      "key": "delete_asset_bundle_button",
+      "text": "Delete Asset Bundle"
+    },
+    {
+      "key": "delete_asset_bundle_button",
+      "text": "Delete Asset Bundle"
+    },
+    {
+      "key": "import_asset_bundle_button",
+      "text": "Import Asset Bundle"
+    },
+    {
+      "key": "delete_category_button",
+      "text": "Delete Category"
+    },
+    {
+      "key": "scene_exists",
+      "text": "{0} scene exists!"
     }
   ]
 }

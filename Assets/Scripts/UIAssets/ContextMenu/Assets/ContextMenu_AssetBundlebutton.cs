@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace ContextMenu
 {
-    internal class AssetBundlebutton_ContextMenu : ContextMenu
+    internal class ContextMenu_AssetBundlebutton : ContextMenu
     {
         private void Start()
         {

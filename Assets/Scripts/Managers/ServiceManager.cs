@@ -18,7 +18,7 @@ namespace Services
             // Default services
             AddService<Language.ILanguageService>       (new Language.LanguageService());
             AddService<Prefab.IPrefabService>           (new Prefab.PrefabService());
-            AddService<World.IWorldService>             (new World.WorldService());
+            AddService<Hierarchy.ISceneService>         (new Hierarchy.SceneService());
         }
 
         public static void AddService<T>(T service) where T : IBaseService

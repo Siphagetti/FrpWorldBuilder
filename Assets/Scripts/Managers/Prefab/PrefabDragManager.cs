@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Save;
+using System.Collections;
 using UnityEngine;
 
 namespace Prefab
@@ -65,9 +66,13 @@ namespace Prefab
             _isDragging = true;
         }
 
-        private void DeselectObject()
+        public void DeselectObject()
         {
             DontShineMesh();
+            SelectedObject.GetComponent<Prefab>().Data.transform = SelectedObject.transform;
+            // Temporary
+            SaveManager.Instance.Save();
+
             SelectedObject = null;
             _isDragging = false;
         }
@@ -87,14 +92,6 @@ namespace Prefab
             _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
             _isDragging = true;
             ShineMesh();
-        }
-
-        // Requires for Thumbnail to deselect its prefab.
-        public void RemoveSelectedObject()
-        {
-            DontShineMesh();
-            SelectedObject = null;
-            _isDragging = false;
         }
 
         private void Awake()

@@ -1,4 +1,5 @@
-﻿using SFB;
+﻿using Hierarchy;
+using SFB;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -134,7 +135,7 @@ namespace Prefab
             prefabs.ToList().ForEach(p =>
             {
                 Prefab prefabComponent = p.AddComponent<Prefab>();
-                bool success = prefabComponent.Initialize(p.name, bundle.name, bundlePath);
+                bool success = prefabComponent.Initialize(new PrefabDTO { prefabName = p.name, assetBundleName = bundle.name }, bundlePath);
                 if (success) readyPrefabs.Add(prefabComponent);
             });
 
@@ -151,6 +152,25 @@ namespace Prefab
         {
             var newCategoryPath = Path.Combine(_rootFolderPath, categoryName);
             Directory.CreateDirectory(newCategoryPath);
+        }
+
+        public List<Prefab> LoadPrefabs(Transform parent, List<PrefabDTO> prefabsData)
+        {
+            var hierarchyManager = Object.FindFirstObjectByType<HierarchyManager>();
+            List<Prefab> prefabs = new List<Prefab>();
+
+            foreach (var prefabData in prefabsData)
+            {
+                var prefab = _prefabRepo.GetPrefab(prefabData.assetBundleName, prefabData.prefabName);
+                var wrapper = prefab.CreateWrapper(prefabData.transform.position);
+                prefabs.Add(wrapper.GetComponent<Prefab>());
+                wrapper.transform.rotation = prefabData.transform.rotation;
+                wrapper.transform.localScale = prefabData.transform.localScale;
+                wrapper.transform.SetParent(parent, true);
+                hierarchyManager.GetComponent<HierarchyManager>().LoadHierarchyElement(prefab, prefabData.hierarchyGroupName);
+            }
+
+            return prefabs;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -74,5 +73,16 @@ public struct SerializableTransform
 {
     public SerializableVector3 position;
     public SerializableQuaternion rotation;
-    public SerializableVector3 scale;
+    public SerializableVector3 localScale;
+
+    public static implicit operator SerializableTransform(Transform t)
+    {
+        var st = new SerializableTransform();
+
+        st.position = t.position;
+        st.rotation = t.rotation;
+        st.localScale = t.localScale;
+
+        return st;
+    }
 }

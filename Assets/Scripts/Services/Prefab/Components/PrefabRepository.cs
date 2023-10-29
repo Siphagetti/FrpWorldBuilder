@@ -62,7 +62,7 @@ namespace Prefab
             {
                 if (assetBundles.ContainsKey(bundleName))
                 {
-                    return assetBundles[bundleName].FirstOrDefault(p => p.PrefabName == prefabName);
+                    return assetBundles[bundleName].FirstOrDefault(p => p.Data.prefabName == prefabName);
                 }
             }
 
@@ -73,7 +73,7 @@ namespace Prefab
         {
             if (_assetBundles.ContainsKey(category) && _assetBundles[category].ContainsKey(bundleName))
             {
-                return _assetBundles[category][bundleName].FirstOrDefault(p => p.PrefabName == prefabName);
+                return _assetBundles[category][bundleName].FirstOrDefault(p => p.Data.prefabName == prefabName);
             }
 
             return null;

@@ -55,36 +55,36 @@ namespace Prefab
 
         public void DeleteCategory(string category)
         {
-            GameManager.NewCoroutine(DeleteCategoryCoroutine(category));
-        }
+            GameManager.NewCoroutine(DeleteCategoryCoroutine());
 
-        private IEnumerator DeleteCategoryCoroutine(string category)
-        {
-            bool result = false;
-            yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_category", category));
-            if (result == false) yield break;
+            IEnumerator DeleteCategoryCoroutine()
+            {
+                bool result = false;
+                yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_category", category));
+                if (result == false) yield break;
 
-            IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
-            prefabService.DeleteCategory(category);
-            var assetBundles = _categoryComponent.RemoveCategory(category);
-            _thumbnailsComponent.DeleteContents(assetBundles);
+                IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
+                prefabService.DeleteCategory(category);
+                var assetBundles = _categoryComponent.RemoveCategory(category);
+                _thumbnailsComponent.DeleteContents(assetBundles);
+            }
         }
 
         public void DeleteAssetBundle(string category, string bundleName)
         {
-            GameManager.NewCoroutine(DeleteAssetBundleCoroutine(category, bundleName));
-        }
+            GameManager.NewCoroutine(DeleteAssetBundleCoroutine());
 
-        private IEnumerator DeleteAssetBundleCoroutine(string category, string bundleName)
-        {
-            bool result = false;
-            yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_category", category));
-            if (result == false) yield break;
+            IEnumerator DeleteAssetBundleCoroutine()
+            {
+                bool result = false;
+                yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_asset_bundle", bundleName));
+                if (result == false) yield break;
 
-            IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
-            prefabService.DeleteAssetBundle(category, bundleName);
-            _categoryComponent.RemoveAssetBundle(category, bundleName);
-            _thumbnailsComponent.DeleteContents(new string[] { bundleName });
+                IPrefabService prefabService = ServiceManager.GetService<IPrefabService>();
+                prefabService.DeleteAssetBundle(category, bundleName);
+                _categoryComponent.RemoveAssetBundle(category, bundleName);
+                _thumbnailsComponent.DeleteContents(new string[] { bundleName });
+            }
         }
     }
 }

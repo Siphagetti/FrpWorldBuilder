@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using World;
 using System.IO;
+using System;
 
 
 #if UNITY_EDITOR
@@ -67,6 +68,16 @@ class PrefabModifier
 
 namespace Prefab
 {
+    [Serializable]
+    public class PrefabDTO
+    {
+        public string prefabName;
+        public string assetBundleName;
+        public string hierarchyGroupName = "";
+
+        public SerializableTransform transform;
+    }
+
     public class Prefab : MonoBehaviour
     {
         /*
@@ -78,87 +89,87 @@ namespace Prefab
 
         public static float Size { get; } = 5.0f;
 
-        public string PrefabName { get; private set; }
-        public string BundleName { get; private set; }
+        public PrefabDTO Data { get; set; }
 
         [SerializeField] private float _scaleFactor;
         [SerializeField] private Mesh _combinedMesh;
         [SerializeField] private Material[] _rimMaterials;
 
-        public bool Initialize(string prefabName, string bundleName, string assetBundlePath)
-        {
-            PrefabName = prefabName;
-            BundleName = bundleName;
+        public void UpdateTransform() => Data.transform = transform;
 
+        public bool Initialize(PrefabDTO indentifier, string assetBundlePath)
+        {
             if (!CombineMeshes(assetBundlePath)) return false;
 
             ResizePrefab();
             CreateRimMaterials();
 
+            Data = indentifier;
+
             return true;
-        }
 
-        private bool CombineMeshes(string assetBundlePath)
-        {
-            // Get all mesh filters in the prefab.
-            List<MeshFilter> meshFilters = GetComponentsInChildren<MeshFilter>().ToList();
-            var rootMeshFilter = GetComponent<MeshFilter>();
-            if (rootMeshFilter != null) meshFilters.Add(rootMeshFilter);
-
-            // Create CombineInstance array to keep combine data
-            CombineInstance[] combine = new CombineInstance[meshFilters.Count];
-
-            // Get all combine data in the mesh filters.
-            for (int i = 0; i < meshFilters.Count; i++)
+            bool CombineMeshes(string assetBundlePath)
             {
-                MeshFilter meshFilter = meshFilters[i];
+                // Get all mesh filters in the prefab.
+                List<MeshFilter> meshFilters = GetComponentsInChildren<MeshFilter>().ToList();
+                var rootMeshFilter = GetComponent<MeshFilter>();
+                if (rootMeshFilter != null) meshFilters.Add(rootMeshFilter);
 
-                // Mesh must be readable 
-                if (meshFilter.sharedMesh.isReadable)
+                // Create CombineInstance array to keep combine data
+                CombineInstance[] combine = new CombineInstance[meshFilters.Count];
+
+                // Get all combine data in the mesh filters.
+                for (int i = 0; i < meshFilters.Count; i++)
                 {
-                    combine[i].mesh = meshFilter.sharedMesh;
-                    combine[i].transform = meshFilter.transform.localToWorldMatrix;
+                    MeshFilter meshFilter = meshFilters[i];
+
+                    // Mesh must be readable 
+                    if (meshFilter.sharedMesh.isReadable)
+                    {
+                        combine[i].mesh = meshFilter.sharedMesh;
+                        combine[i].transform = meshFilter.transform.localToWorldMatrix;
+                    }
+                    else
+                    {
+                        Log.Logger.Log_Fatal("bundle_has_unreadable_mesh", name, Path.GetFileName(assetBundlePath));
+                        Log.Logger.Log_Error("mesh_unreadable", meshFilter.name, gameObject.name);
+                        return false;
+                    }
                 }
-                else
-                {
-                    Log.Logger.Log_Fatal("bundle_has_unreadable_mesh", name, Path.GetFileName(assetBundlePath));
-                    Log.Logger.Log_Error("mesh_unreadable", meshFilter.name, gameObject.name);
-                    return false;
-                }
+
+                _combinedMesh = new Mesh();
+                _combinedMesh.CombineMeshes(combine, false, true, false);
+                return true;
             }
 
-            _combinedMesh = new Mesh();
-            _combinedMesh.CombineMeshes(combine, false, true, false);
-            return true;
-        }
-
-        private void ResizePrefab()
-        {
-            // Get bounds of the combined mesh
-            Bounds bounds = _combinedMesh.bounds;
-
-            // Find the largest dimension (x, y, or z)
-            float largestDimension = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
-
-            // Calculate the scaling factor to match the largest dimension with the cube's edge length
-            _scaleFactor = Size / largestDimension;
-
-            // Apply the scaling factor to the prefab
-            transform.localScale = _scaleFactor * Vector3.one;
-        }
-
-        private void CreateRimMaterials()
-        {
-            List<MeshRenderer> meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
-            var rootRenderer = GetComponent<MeshRenderer>();
-            if (rootRenderer != null) meshRenderers.Add(rootRenderer);
-
-            _rimMaterials = new Material[meshRenderers.Count];
-            Shader shader = FindObjectOfType<PrefabManager>().rimShader;
-
-            for (int i = 0; i < meshRenderers.Count; i++)
+            void ResizePrefab()
             {
-                _rimMaterials[i] = new Material(shader);
+                // Get bounds of the combined mesh
+                Bounds bounds = _combinedMesh.bounds;
+
+                // Find the largest dimension (x, y, or z)
+                float largestDimension = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+
+                // Calculate the scaling factor to match the largest dimension with the cube's edge length
+                _scaleFactor = Size / largestDimension;
+
+                // Apply the scaling factor to the prefab
+                transform.localScale = _scaleFactor * Vector3.one;
+            }
+
+            void CreateRimMaterials()
+            {
+                List<MeshRenderer> meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
+                var rootRenderer = GetComponent<MeshRenderer>();
+                if (rootRenderer != null) meshRenderers.Add(rootRenderer);
+
+                _rimMaterials = new Material[meshRenderers.Count];
+                Shader shader = FindObjectOfType<PrefabManager>().rimShader;
+
+                for (int i = 0; i < meshRenderers.Count; i++)
+                {
+                    _rimMaterials[i] = new Material(shader);
+                }
             }
         }
 
@@ -175,33 +186,40 @@ namespace Prefab
             wrapper.AddComponent<MeshFilter>().mesh = _combinedMesh;
             wrapper.AddComponent<MeshRenderer>().materials = _rimMaterials;
 
+            // Transfer the Prefab class properties to the wrapper
+            Prefab prefabComponent = wrapper.AddComponent<Prefab>();
+            prefabComponent.Data = Data;
+
+            // Remove the Prefab component from the spawnedPrefab
+            Destroy(spawnedPrefab.GetComponent<Prefab>());
+
             CreateBoxCollider(wrapper);
 
             return wrapper;
-        }
 
-        private void InitializeWrapper(GameObject wrapper, GameObject spawnedPrefab, Vector3 createPos)
-        {
-            wrapper.layer = LayerMask.NameToLayer("Draggable");
-            wrapper.transform.position = createPos;
-            wrapper.transform.localScale = _scaleFactor * Vector3.one;
+            void InitializeWrapper(GameObject wrapper, GameObject spawnedPrefab, Vector3 createPos)
+            {
+                wrapper.layer = LayerMask.NameToLayer("Draggable");
+                wrapper.transform.position = createPos;
+                wrapper.transform.localScale = _scaleFactor * Vector3.one;
 
-            // Make prefab a child of the wrapper
-            wrapper.transform.SetParent(spawnedPrefab.transform.parent);
-            spawnedPrefab.transform.SetParent(wrapper.transform);
-            spawnedPrefab.transform.localPosition = Vector3.zero;
-        }
+                // Make prefab a child of the wrapper
+                wrapper.transform.SetParent(spawnedPrefab.transform.parent);
+                spawnedPrefab.transform.SetParent(wrapper.transform);
+                spawnedPrefab.transform.localPosition = Vector3.zero;
+            }
 
-        private void CreateBoxCollider(GameObject wrapper)
-        {
-            // Get bounds of the combined mesh
-            Bounds bounds = _combinedMesh.bounds;
+            void CreateBoxCollider(GameObject wrapper)
+            {
+                // Get bounds of the combined mesh
+                Bounds bounds = _combinedMesh.bounds;
 
-            // Create Box Collider
-            BoxCollider boxCollider = wrapper.AddComponent<BoxCollider>();
-            boxCollider.size = new Vector3(0.8f * bounds.size.x, bounds.size.y, 0.8f * bounds.size.z);
-            boxCollider.center = bounds.center;
-            boxCollider.isTrigger = true;
+                // Create Box Collider
+                BoxCollider boxCollider = wrapper.AddComponent<BoxCollider>();
+                boxCollider.size = new Vector3(0.8f * bounds.size.x, bounds.size.y, 0.8f * bounds.size.z);
+                boxCollider.center = bounds.center;
+                boxCollider.isTrigger = true;
+            }
         }
     }
 }

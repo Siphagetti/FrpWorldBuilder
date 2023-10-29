@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 2478912266213306260}
   - component: {fileID: -620702707867900790}
   m_Layer: 5
-  m_Name: AssetBundleButton_ContextMenu 1
+  m_Name: AssetBundle_ContextMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -234,10 +234,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4772351034163791231}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bda17f0c1b6c24747918bc3a0e4a1109, type: 3}
+  m_Script: {fileID: 11500000, guid: 9b632ab6946434c40bb85dae20b0955c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _deleteCategoryButton: {fileID: 4042172873928191364}
 --- !u!1 &7637479774035074515
 GameObject:
   m_ObjectHideFlags: 0
@@ -249,6 +248,7 @@ GameObject:
   - component: {fileID: 6018198990117355105}
   - component: {fileID: 454362101614615347}
   - component: {fileID: 7409474030330706898}
+  - component: {fileID: 2713089407982225689}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -372,3 +372,16 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2713089407982225689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7637479774035074515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 786a6bda31e458048b53b640ebabef1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _key: delete_asset_bundle_button

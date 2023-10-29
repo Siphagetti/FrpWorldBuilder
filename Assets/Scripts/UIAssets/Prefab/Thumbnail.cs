@@ -1,3 +1,5 @@
+using Hierarchy;
+using Save;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -80,7 +82,7 @@ namespace Prefab
                 // Set instantiated prefab's position as '_prefabSpawnPos' back  
                 // and unassign dragging object
                 _spawnedPrefab.transform.position = _prefabSpawnPos;
-                dragManager.RemoveSelectedObject();
+                dragManager.DeselectObject();
 
                 _image.gameObject.SetActive(true);
                 _text.gameObject.SetActive(true);
@@ -98,7 +100,12 @@ namespace Prefab
             }
 
             if (_spawnedPrefab.transform.position == _prefabSpawnPos) Destroy(_spawnedPrefab);
-
+            else
+            {
+                Prefab prefab = _spawnedPrefab.GetComponent<Prefab>();
+                prefab.UpdateTransform();
+                FindFirstObjectByType<HierarchyManager>().AddHierarchyElement(prefab);
+            }
             // Set UI's parent as its beginning parent.
             transform.SetParent(_parentTransform);
 
