@@ -8,7 +8,6 @@ This project is a Unity-based game/application with modular components organized
   - [HierarchyManager Class](#hierarchymanager-class)
   - [PrefabDragManager Class](#prefabdragmanager-class)
   - [HierarchyElement Class](#hierarchyelement-class)
-  - [Thumbnail Class](#thumbnail-class)
 
 - [Prefab Namespace](#prefab-namespace)
   - [Prefab Class](#prefab-class)
@@ -16,7 +15,8 @@ This project is a Unity-based game/application with modular components organized
   - [PrefabRepository Class](#prefabrepository-class)
   - [IPrefabService Interface](#iprefabservice-interface)
   - [PrefabService Class](#prefabservice-class)
-
+  - [Thumbnail Class](#thumbnail-class)
+  - 
 - [Services Namespace](#services-namespace)
   - [IBaseService Interface](#ibaseservice-interface)
   - [ServiceManager Class](#servicemanager-class)
@@ -48,10 +48,6 @@ Handles the drag-and-drop functionality of prefabs in the game. It allows users 
 
 Represents an element in the hierarchy. When clicked, it can be selected for manipulation in the scene.
 
-## Thumbnail Class
-
-Handles the drag-and-drop functionality of UI thumbnails, making it easier to add prefabs to the scene from the UI.
-
 # Prefab Namespace
 
 The `Prefab` namespace contains classes related to the game's prefabs.
@@ -75,6 +71,10 @@ An interface for the prefab service, defining methods for working with prefabs.
 ## PrefabService Class
 
 Implements the `IPrefabService` interface and is responsible for managing the loading and importing of asset bundles and prefabs.
+
+## Thumbnail Class
+
+Handles the drag-and-drop functionality of UI thumbnails, making it easier to add prefabs to the scene from the UI.
 
 # Services Namespace
 
