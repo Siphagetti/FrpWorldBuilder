@@ -11,9 +11,6 @@
    - [Prefab](#prefab)
    - [Save](#save)
    - [Hierarchy](#hierarchy)
-3. [Usage](#usage)
-4. [Contributing](#contributing)
-5. [License](#license)
 
 ## Project Overview
 
@@ -73,14 +70,3 @@ The `Save` namespace provides functionality for saving and loading game data. It
 The `Hierarchy` namespace deals with the hierarchical structure of game objects and scenes. Key components include:
 
 - `HierarchyManager`: Manages the hierarchy of game objects and scenes, including their creation, deletion, and organization.
-
-## Usage
-
-To use this project effectively, follow these steps:
-
-1. **Clone the Repository:**
-
-   Clone this GitHub repository to your local machine using the following command:
-
-   ```shell
-   git clone https://github.com/yourusername/your-project.git
