@@ -1,72 +1,121 @@
 # FrpWorldBuilder
 
+This project is a Unity-based game/application with modular components organized into various namespaces for easy management and maintenance. Below, you'll find an overview of the project structure and details about each namespace and class.
+
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Code Structure](#code-structure)
-   - [GameManager](#gamemanager)
-   - [ServiceManager](#servicemanager)
-   - [Logger](#logger)
-   - [Language](#language)
-   - [Prefab](#prefab)
-   - [Save](#save)
-   - [Hierarchy](#hierarchy)
+- [Hierarchy Namespace](#hierarchy-namespace)
+  - [HierarchyManager Class](#hierarchymanager-class)
+  - [PrefabDragManager Class](#prefabdragmanager-class)
+  - [HierarchyElement Class](#hierarchyelement-class)
+  - [Thumbnail Class](#thumbnail-class)
 
-## Project Overview
+- [Prefab Namespace](#prefab-namespace)
+  - [Prefab Class](#prefab-class)
+  - [PrefabDTO Class](#prefabdto-class)
+  - [PrefabRepository Class](#prefabrepository-class)
+  - [IPrefabService Interface](#iprefabservice-interface)
+  - [PrefabService Class](#prefabservice-class)
 
-Welcome to the GitHub repository for Your Project Name. This project is designed to [briefly describe the main purpose of your project and the problem it aims to solve]. It utilizes the Unity game engine and includes various scripts and components to achieve its goals.
+- [Services Namespace](#services-namespace)
+  - [IBaseService Interface](#ibaseservice-interface)
+  - [ServiceManager Class](#servicemanager-class)
 
-## Code Structure
+- [Save Namespace](#save-namespace)
+  - [SavableObject Class](#savableobject-class)
+  - [SaveManager Class](#savemanager-class)
+  - [SaveData Class](#savedata-class)
 
-In this section, we'll explore the key components and scripts that make up the project's codebase. Each script and component is described below.
+- [UserInterface Namespace](#userinterface-namespace)
+  - [UI_Logger_WorldBuilding Class](#ui_logger_worldbuilding-class)
 
-### GameManager
+- [Language Namespace](#language-namespace)
+  - [LocalizedText Class](#localizedtext-class)
 
-The `GameManager` script serves as the core of the project, responsible for managing the game's main loop and high-level logic. It performs the following tasks:
+# Hierarchy Namespace
 
-- Initializes essential systems and services.
-- Handles input events and user interactions.
-- Manages game state transitions.
+The `Hierarchy` namespace includes classes responsible for managing the game's hierarchy system.
 
-### ServiceManager
+## HierarchyManager Class
 
-The `ServiceManager` script acts as a central repository for various services used throughout the project. It offers the following functionalities:
+Manages the hierarchy of objects in the game. It allows users to organize objects into groups and provides methods for selecting, deselecting, and deleting objects.
 
-- Manages service instances and provides access to essential features.
-- Included services cover areas such as language localization, data management, and more.
+## PrefabDragManager Class
 
-### Logger
+Handles the drag-and-drop functionality of prefabs in the game. It allows users to drag prefabs from the UI onto the scene.
 
-The `Logger` script provides a structured way to log messages of different types, such as track, info, warning, error, and fatal. Key features include:
+## HierarchyElement Class
 
-- Centralized logging for a consistent user experience.
-- The ability to log messages with localization support.
-- Integration with UI components for displaying log messages.
+Represents an element in the hierarchy. When clicked, it can be selected for manipulation in the scene.
 
-### Language
+## Thumbnail Class
 
-The `Language` namespace encompasses language localization and internationalization services. The key components are:
+Handles the drag-and-drop functionality of UI thumbnails, making it easier to add prefabs to the scene from the UI.
 
-- `LanguageService`: Manages the localization of in-game text and offers the ability to change the language dynamically.
-- `LanguagePackage`: A data structure that holds a list of localized messages.
+# Prefab Namespace
 
-### Prefab
+The `Prefab` namespace contains classes related to the game's prefabs.
 
-The `Prefab` namespace focuses on prefab and asset bundle management within the project. It includes the following components:
+## Prefab Class
 
-- `PrefabDragManager`: Handles drag-and-drop functionality for prefabs and asset bundles.
-- `CategoryComponent`: Manages categories and asset bundles for organized content.
-- `ThumbnailsComponent`: Handles the creation and display of thumbnail images for prefabs.
+Represents a game object prefab. It includes methods for initializing, updating, and managing prefabs in the scene.
 
-### Save
+## PrefabDTO Class
 
-The `Save` namespace provides functionality for saving and loading game data. It offers:
+A data transfer object (DTO) used for serializing prefab data to JSON for saving and loading scenes.
 
-- `SaveManager`: Manages save and load operations for game progress and data storage.
-- `SavableObject`: A base class for objects that can be saved and loaded.
+## PrefabRepository Class
 
-### Hierarchy
+Manages a collection of prefabs, categorized into asset bundles. It provides methods for adding, removing, and retrieving prefabs.
 
-The `Hierarchy` namespace deals with the hierarchical structure of game objects and scenes. Key components include:
+## IPrefabService Interface
 
-- `HierarchyManager`: Manages the hierarchy of game objects and scenes, including their creation, deletion, and organization.
+An interface for the prefab service, defining methods for working with prefabs.
+
+## PrefabService Class
+
+Implements the `IPrefabService` interface and is responsible for managing the loading and importing of asset bundles and prefabs.
+
+# Services Namespace
+
+The `Services` namespace includes classes for managing various game services.
+
+## IBaseService Interface
+
+An interface for defining common service methods that other services can implement.
+
+## ServiceManager Class
+
+Manages all game services, providing access to different services throughout the game.
+
+# Save Namespace
+
+The `Save` namespace contains classes for saving and loading game data.
+
+## SavableObject Class
+
+A base class for objects that can be saved and loaded. It handles the serialization of data to JSON.
+
+## SaveManager Class
+
+Manages the saving and loading of game data. It keeps track of saved files and provides methods for saving and loading game states.
+
+## SaveData Class
+
+A data structure for saving game data, including a file name and the serialized JSON data.
+
+# UserInterface Namespace
+
+The `UserInterface` namespace is dedicated to classes responsible for the game's user interface.
+
+## UI_Logger_WorldBuilding Class
+
+Manages the user interface for logging in the world-building aspect of the game. It provides methods for logging messages with different log types and displaying them in the user interface.
+
+# Language Namespace
+
+The `Language` namespace contains classes for handling localized text in the user interface.
+
+## LocalizedText Class
+
+Manages localized text in the game's user interface. It automatically updates text components with localized content based on the current language. Provides methods for subscribing to text updates and fetching localized text from the language service.
