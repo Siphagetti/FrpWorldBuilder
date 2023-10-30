@@ -1,7 +1,6 @@
 ﻿using Prefab;
 using Save;
 using Services;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -10,25 +9,37 @@ namespace Hierarchy
 {
     internal class Scene
     {
-        [NonSerialized]
-        public readonly static string _folderPath = Path.Combine(SaveManager.Instance._folderPath, "Scenes");
+        // Constants for the folder path
+        public readonly static string folderPath = Path.Combine(SaveManager.Instance._folderPath, "Scenes");
 
-        [NonSerialized]
-        private readonly string jsonFilePath;
+        private readonly string _jsonFilePath;
 
-        [NonSerialized] private GameObject _root;
+        // Private field for the scene's root GameObject
+        private GameObject root;
 
-        public List<Prefab.Prefab> PrefabList { get; private set; } = new();
+        // Lists to store prefab data and the hierarchy structure
+        public List<Prefab.Prefab> PrefabList { get; private set; } = new List<Prefab.Prefab>();
+        private List<PrefabDTO> hierarchy = new List<PrefabDTO>();
 
-        [SerializeField] private List<PrefabDTO> hierarchy = new();
+        public Scene(string sceneName)
+        {
+            // Initialize the JSON file path and create a new root GameObject for the scene
+            _jsonFilePath = Path.Combine(folderPath, sceneName + ".json");
+            root = new GameObject();
 
+            // Reset the hierarchy when creating a new scene
+            UnityEngine.Object.FindFirstObjectByType<HierarchyManager>().ResetHierarchy();
+        }
+
+        // Add a prefab to the scene
         public void AddPrefab(Prefab.Prefab prefab)
         {
-            prefab.transform.SetParent(_root.transform);
+            prefab.transform.SetParent(root.transform);
             PrefabList.Add(prefab);
             hierarchy.Add(prefab.Data);
         }
 
+        // Delete a prefab from the scene
         public void DeletePrefab(Prefab.Prefab prefab)
         {
             PrefabList.Remove(prefab);
@@ -36,38 +47,49 @@ namespace Hierarchy
             UnityEngine.Object.Destroy(prefab.gameObject);
         }
 
+        // Close and clean up the scene
         public void CloseScene()
         {
-            UnityEngine.Object.Destroy(_root);
+            UnityEngine.Object.Destroy(root);
         }
 
-        public bool IsSaveFileExists() => File.Exists(jsonFilePath);
-        public void Delete() { if (File.Exists(jsonFilePath)) File.Delete(jsonFilePath); }
+        // Check if the JSON save file for the scene exists
+        public bool IsSaveFileExists() => File.Exists(_jsonFilePath);
+
+        // Delete the JSON save file for the scene
+        public void Delete()
+        {
+            if (File.Exists(_jsonFilePath))
+                File.Delete(_jsonFilePath);
+        }
 
         #region Save/Load
 
+        // Save the scene to a JSON file
         public void Save()
         {
+            foreach (var prefab in PrefabList)
+                prefab.UpdateTransform();
+
+            // Convert the scene object to a JSON string and write it to a file
             string jsonString = JsonUtility.ToJson(this);
-            File.WriteAllText(jsonFilePath, jsonString);
+            File.WriteAllText(_jsonFilePath, jsonString);
         }
 
+        // Load the scene from a JSON file
         public void Load()
         {
-            if (File.Exists(jsonFilePath))
+            if (File.Exists(_jsonFilePath))
             {
-                string jsonString = File.ReadAllText(jsonFilePath);
+                // Read the JSON file and deserialize it to populate the scene object
+                string jsonString = File.ReadAllText(_jsonFilePath);
                 JsonUtility.FromJsonOverwrite(jsonString, this);
-                PrefabList = ServiceManager.GetService<IPrefabService>().LoadPrefabs(_root.transform, hierarchy);
+
+                // Load the prefabs into the scene from the hierarchy data
+                PrefabList = ServiceManager.GetService<IPrefabService>().LoadPrefabs(root.transform, hierarchy);
             }
         }
 
         #endregion
-
-        public Scene(string sceneName)
-        {
-            jsonFilePath = Path.Combine(_folderPath, sceneName + ".json");
-            _root = new GameObject();
-        }
     }
 }

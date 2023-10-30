@@ -10,17 +10,10 @@ namespace Prefab
     {
         private GameObject _currentThumbnailContent;
 
-        // Keeps all thumbnail containers in its view child
-        [SerializeField] private ScrollRect _thumbnailScroller;
-
-        // Keeps all thumbnails of an asset bundle
-        [SerializeField] private GameObject _thumbnailContentPrefab;
-
-        // A thumbnail for a prefab in an asset bundle.
-        [SerializeField] private GameObject _prefabThumbnail;
-
-        // A temporary game object for taking image of the prefab for thumbnail.
-        [SerializeField] private GameObject _thumbnailPhotoShoot;
+        [SerializeField] private ScrollRect _thumbnailScroller; // Keeps all thumbnail containers in its view child
+        [SerializeField] private GameObject _thumbnailContentPrefab; // Keeps all thumbnails of an asset bundle
+        [SerializeField] private GameObject _prefabThumbnail; // A thumbnail for a prefab in an asset bundle.
+        [SerializeField] private GameObject _thumbnailPhotoShoot; // A temporary game object for taking an image of the prefab for the thumbnail.
 
         private Queue<IEnumerator> _createThumbnails = new();
 
@@ -79,7 +72,7 @@ namespace Prefab
 
         public void ChangeCurrentThumbnailContent(GameObject thumbnailContent)
         {
-            if (_currentThumbnailContent != null && !_currentThumbnailContent.IsDestroyed()) 
+            if (_currentThumbnailContent != null && !_currentThumbnailContent.IsDestroyed())
                 _currentThumbnailContent.SetActive(false);
 
             thumbnailContent.SetActive(true);
@@ -89,26 +82,20 @@ namespace Prefab
 
         public void DeleteContents(string[] assetBundles)
         {
-            int contentCount = _thumbnailScroller.viewport.transform.childCount;
-            int foundContents = 0;
-
             Transform viewportTransform = _thumbnailScroller.viewport;
 
-            for (int i = 0; i < contentCount; i++) 
+            for (int i = 0; i < viewportTransform.childCount; i++)
             {
                 GameObject content = viewportTransform.GetChild(i).gameObject;
 
-                for (int j = foundContents; j < assetBundles.Length; j++) 
+                for (int j = 0; j < assetBundles.Length; j++)
                 {
                     if (content.name.Replace(" Content", "") == assetBundles[j])
                     {
                         Destroy(content);
-                        foundContents++;
                         break;
                     }
                 }
-
-                if (foundContents == assetBundles.Length) return;
             }
         }
 

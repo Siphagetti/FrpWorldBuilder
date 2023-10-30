@@ -5,54 +5,28 @@ using World;
 using System.IO;
 using System;
 
-
 #if UNITY_EDITOR
 
 using UnityEditor;
 using Unity.VisualScripting;
 
-class PrefabModifier
+namespace Prefab
 {
-    [MenuItem("Modify Prefabs/Make Textures Readable")]
-    public static void MakeTexturesReadable()
+    public class PrefabModifier : MonoBehaviour
     {
-        /*
-            If textures of a prefab is unreadable, you can use this function on editor
-        */
-
-        Texture2D[] textures = Resources.FindObjectsOfTypeAll<Texture2D>();
-
-        foreach (Texture2D texture in textures)
+        [MenuItem("Modify Prefabs/Make Textures Readable")]
+        public static void MakeTexturesReadable()
         {
-            string path = AssetDatabase.GetAssetPath(texture);
-            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            /*
+                If textures of a prefab are unreadable, you can use this function in the editor.
+            */
 
-            if (importer != null)
+            Texture2D[] textures = Resources.FindObjectsOfTypeAll<Texture2D>();
+
+            foreach (Texture2D texture in textures)
             {
-                importer.isReadable = true;
-                AssetDatabase.ImportAsset(path);
-            }
-        }
-    }
-
-    [MenuItem("Modify Prefabs/Make Meshes Readable")]
-    public static void MakeMeshesReadable()
-    {
-        /*
-            If model of a prefab is unreadable, you can use this function on editor
-        */
-
-        MeshFilter[] meshFilters = Resources.FindObjectsOfTypeAll<MeshFilter>();
-
-        foreach (MeshFilter meshFilter in meshFilters)
-        {
-            if (meshFilter.IsDestroyed()) continue;
-            Mesh mesh = meshFilter.sharedMesh;
-
-            if (mesh != null)
-            {
-                string path = AssetDatabase.GetAssetPath(mesh);
-                ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
+                string path = AssetDatabase.GetAssetPath(texture);
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
 
                 if (importer != null)
                 {
@@ -61,13 +35,38 @@ class PrefabModifier
                 }
             }
         }
+
+        [MenuItem("Modify Prefabs/Make Meshes Readable")]
+        public static void MakeMeshesReadable()
+        {
+            /*
+                If the model of a prefab is unreadable, you can use this function in the editor.
+            */
+
+            MeshFilter[] meshFilters = Resources.FindObjectsOfTypeAll<MeshFilter>();
+
+            foreach (MeshFilter meshFilter in meshFilters)
+            {
+                if (meshFilter.IsDestroyed()) continue;
+                Mesh mesh = meshFilter.sharedMesh;
+
+                if (mesh != null)
+                {
+                    string path = AssetDatabase.GetAssetPath(mesh);
+                    ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
+
+                    if (importer != null)
+                    {
+                        importer.isReadable = true;
+                        AssetDatabase.ImportAsset(path);
+                    }
+                }
+            }
+        }
     }
-}
 
 #endif
 
-namespace Prefab
-{
     [Serializable]
     public class PrefabDTO
     {
@@ -77,6 +76,15 @@ namespace Prefab
         public string hierarchyGroupName = "";
         public SerializableTransform transform;
 
+        public PrefabDTO() { }
+        public PrefabDTO(PrefabDTO other)
+        {
+            guid = other.guid;
+            prefabName = other.prefabName;
+            assetBundleName = other.assetBundleName;
+            hierarchyGroupName = other.hierarchyGroupName;
+            transform = other.transform;
+        }
         public override bool Equals(object obj)
         {
             if (obj is PrefabDTO other)
@@ -108,9 +116,9 @@ namespace Prefab
     public class Prefab : MonoBehaviour
     {
         /*
-            If prefab loaded recently, it must be Initialized to standardize.
+            If a prefab is loaded recently, it must be initialized to standardize.
 
-            If the prefab needed to be instantiated, a wrapper should keep the prefab. 
+            If the prefab needs to be instantiated, a wrapper should keep the prefab. 
             So, CreateWrapper functions should be used to instantiate prefab.
         */
 
@@ -124,14 +132,14 @@ namespace Prefab
 
         public void UpdateTransform() => Data.transform = transform;
 
-        public bool Initialize(PrefabDTO indentifier, string assetBundlePath)
+        public bool Initialize(PrefabDTO data, string assetBundlePath)
         {
             if (!CombineMeshes(assetBundlePath)) return false;
 
             ResizePrefab();
             CreateRimMaterials();
 
-            Data = indentifier;
+            Data = data;
 
             return true;
 
@@ -217,7 +225,7 @@ namespace Prefab
 
             // Transfer the Prefab class properties to the wrapper
             Prefab prefabComponent = wrapper.AddComponent<Prefab>();
-            prefabComponent.Data = Data;
+            prefabComponent.Data = new(Data);
 
             // Remove the Prefab component from the spawnedPrefab
             Destroy(spawnedPrefab.GetComponent<Prefab>());

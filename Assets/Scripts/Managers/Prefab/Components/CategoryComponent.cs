@@ -10,26 +10,19 @@ namespace Prefab
 {
     internal class CategoryComponent : MonoBehaviour
     {
-        // Keeps all category elements.
-        [SerializeField] private Transform CategoryContent;
+        [SerializeField] private Transform CategoryContent; // Keeps all category elements.
 
-        // Toggles related asset bundles button container.
-        [SerializeField] private GameObject CategoryButtonPrefab;
+        [SerializeField] private GameObject CategoryButtonPrefab; // Toggles related asset bundles button container.
 
-        // Keeps asset bundles' buttons
-        [SerializeField] private GameObject AssetBundlesButtonContainer;
+        [SerializeField] private GameObject AssetBundlesButtonContainer; // Keeps asset bundles' buttons.
 
-        // Apeears asset bundle's prefabs in ui container.
-        [SerializeField] private GameObject AssetBundleButtonPrefab;
+        [SerializeField] private GameObject AssetBundleButtonPrefab; // Appears asset bundle's prefabs in the UI container.
 
-        // While adding new category, this panel takes a new category name via input field.
-        [SerializeField] private GameObject NewCategoryPanel;
+        [SerializeField] private GameObject NewCategoryPanel; // While adding a new category, this panel takes a new category name via an input field.
 
         // Key:     category
         // Value:   Category button and asset bundle button container
         private Dictionary<string, (GameObject, GameObject)> _bundleContainers = new();
-
-
 
         #region Asset Bundle
 
@@ -37,11 +30,13 @@ namespace Prefab
         {
             if (!_bundleContainers.ContainsKey(category)) return null;
 
+            // Create an asset bundle button in the specified category container.
             var bundleBtn = Instantiate(AssetBundleButtonPrefab, _bundleContainers[category].Item2.transform);
             bundleBtn.GetComponent<Button>().onClick.AddListener(() =>
                 GetComponent<ThumbnailsComponent>().ChangeCurrentThumbnailContent(relatedThumbnailContent));
             bundleBtn.GetComponentInChildren<TMPro.TMP_Text>().text = bundleName;
 
+            // Refresh the asset bundle container to ensure it updates correctly.
             GameManager.NewCoroutine(AssetBundleContainerRefresh(_bundleContainers[category].Item2));
 
             return _bundleContainers[category].Item2;
@@ -57,7 +52,10 @@ namespace Prefab
 
                 if (assetBundle.GetComponentInChildren<TMPro.TMP_Text>().text == bundleName)
                 {
+                    // Remove the specified asset bundle button from the container.
                     Destroy(assetBundle.gameObject);
+
+                    // Refresh the asset bundle container to ensure it updates correctly.
                     GameManager.NewCoroutine(AssetBundleContainerRefresh(container.gameObject));
                     return;
                 }
@@ -76,6 +74,7 @@ namespace Prefab
         #region Category
 
         Coroutine newCategoryCoroutine;
+
         private void NewCategory()
         {
             if (newCategoryCoroutine != null) StopCoroutine(newCategoryCoroutine);
@@ -100,6 +99,7 @@ namespace Prefab
                         Log.Logger.Log_Error("category_exists", newCategory);
                     else
                     {
+                        // Create a new category and add it to the UI.
                         prefabService.NewCategory(newCategory);
                         inputFiled.text = "";
                         NewCategoryPanel.SetActive(false);
@@ -115,6 +115,7 @@ namespace Prefab
 
         public void CreateCategory(string category)
         {
+            // Create a new category button and its associated asset bundle button container.
             var categoryBtn = Instantiate(CategoryButtonPrefab, CategoryContent);
             var bundleContainer = Instantiate(AssetBundlesButtonContainer, CategoryContent);
 
@@ -144,10 +145,9 @@ namespace Prefab
 
         #endregion
 
-
         private void Awake()
         {
-            // Get new category button and add its onClick event NewCategory() function.
+            // Get the new category button and add its onClick event to the NewCategory() function.
             NewCategoryPanel.transform.parent.GetChild(2).GetComponent<Button>().onClick.AddListener(NewCategory);
         }
     }

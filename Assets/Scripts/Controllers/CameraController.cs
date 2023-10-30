@@ -6,72 +6,78 @@ using UnityEngine.EventSystems;
 public class CameraController : MonoBehaviour
 {
     [Header("Smoothness Parameters")]
-    [SerializeField] private float _smoothSpeed = 0.125f;
+    [SerializeField] private float smoothSpeed = 0.125f;
 
     [Header("Movement Parameters")]
-    [SerializeField] private float _moveSpeed = 100f;
-    [SerializeField] private float _fastMoveSpeed = 150f;
+    [SerializeField] private float moveSpeed = 100f;
+    [SerializeField] private float fastMoveSpeed = 150f;
 
     [Header("Movement To Prefab Parameters")]
-    [SerializeField] private float _distanceFromPrefab = 5f;
-    [SerializeField] private float _heightAbovePrefab = 2f;
+    [SerializeField] private float distanceFromPrefab = 5f;
+    [SerializeField] private float heightAbovePrefab = 2f;
 
     [Header("Rotation Parameters")]
-    [SerializeField] private float _rotationSpeed = 100f;
-    [SerializeField] private float _mouseSensitivity = 1f;
-    [SerializeField] private float _smoothRotation = 1f;
+    [SerializeField] private float rotationSpeed = 100f;
+    [SerializeField] private float mouseSensitivity = 1f;
+    [SerializeField] private float smoothRotation = 1f;
 
     [Header("Zoom Parameters")]
-    [SerializeField] private float _minZoom = 20f;
-    [SerializeField] private float _maxZoom = 60f;
-    [SerializeField] private float _zoomSpeed = 2000f;
-    [SerializeField] private float _fastZoomSpeed = 3000f;
+    [SerializeField] private float minZoom = 20f;
+    [SerializeField] private float maxZoom = 60f;
+    [SerializeField] private float zoomSpeed = 2000f;
+    [SerializeField] private float fastZoomSpeed = 3000f;
 
-    private Vector3 _targetPrefabPosition;
-    private Vector3 _targetPosition;
-    private Camera _cameraComponent;
+    private Vector3 targetPrefabPosition;
+    private Vector3 targetPosition;
+    private Camera cameraComponent;
 
-    private float _targetFieldOfView;
-    private Vector2 _smoothMouseInput;
-    private Vector2 _currentRotation;
-    private Vector2 _rotationDelta;
+    private float targetFieldOfView;
+    private Vector2 smoothMouseInput;
+    private Vector2 currentRotation;
+    private Vector2 rotationDelta;
 
-    private bool _isNormalMoving = false;
-    private bool _isMovingToPrefab = false;
+    private bool isNormalMoving = false;
+    private bool isMovingToPrefab = false;
 
     public bool IsUIClicked { get; set; } = false;
 
     private void Awake()
     {
-        _cameraComponent = GetComponent<Camera>();
-        _targetPosition = transform.position;
-        _targetFieldOfView = _cameraComponent.fieldOfView;
+        cameraComponent = GetComponent<Camera>();
+        targetPosition = transform.position;
+        targetFieldOfView = cameraComponent.fieldOfView;
     }
 
     private void Update()
     {
+        // Check if the mouse is over a UI element
         bool isCursorOverUI = IsCursorOverUIElement();
 
+        // Detect mouse click on UI
         if (Input.GetMouseButtonDown(0)) IsUIClicked = isCursorOverUI;
 
+        // Handle moving the camera towards a prefab
         HandleMovementToPrefab();
 
+        // If not interacting with UI, handle camera movement and input
         if (!IsUIClicked)
         {
-            if (!_isMovingToPrefab)
+            if (!isMovingToPrefab)
             {
                 HandleMovementInput();
                 HandleVerticalMovementInput();
+
+                // Check if the mouse is not over UI for rotation and zoom
                 if (!isCursorOverUI)
                 {
                     HandleRotateInput();
                     HandleZoomInput();
                 }
             }
-            SmoothZoom();
+            SmoothZoom(); // Smoothly adjust the camera's field of view
         }
 
-        SmoothMovement();
+        SmoothMovement(); // Smoothly adjust the camera's position
     }
 
     private void HandleMovementInput()
@@ -83,17 +89,21 @@ public class CameraController : MonoBehaviour
         // Calculate the new position for the camera
         Vector3 moveDirection = new Vector3(horizontalInput, 0, verticalInput);
 
-        if (moveDirection == Vector3.zero) { _isNormalMoving = false; return; }
-        
-        float speed = Input.GetKey(KeyCode.LeftShift) ? _fastMoveSpeed : _moveSpeed;
+        if (moveDirection == Vector3.zero)
+        {
+            isNormalMoving = false;
+            return;
+        }
+
+        float speed = Input.GetKey(KeyCode.LeftShift) ? fastMoveSpeed : moveSpeed;
 
         // Apply camera rotation to the movement direction
         moveDirection = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 0) * moveDirection;
 
         // Set the target position for smooth movement
-        _targetPosition = transform.position + moveDirection * speed * Time.deltaTime;
+        targetPosition = transform.position + moveDirection * speed * Time.deltaTime;
 
-        _isNormalMoving = true;
+        isNormalMoving = true;
     }
 
     private void HandleVerticalMovementInput()
@@ -104,93 +114,110 @@ public class CameraController : MonoBehaviour
         else if (Input.GetKey(KeyCode.Q)) verticalInput = -1f;
         else return;
 
-        float speed = Input.GetKey(KeyCode.LeftShift) ? _fastMoveSpeed : _moveSpeed;
+        float speed = Input.GetKey(KeyCode.LeftShift) ? fastMoveSpeed : moveSpeed;
 
         // Apply camera rotation to the movement direction
         var moveDirection = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, 0) * Vector3.up * verticalInput;
 
         Vector3 verticalMovement = moveDirection * speed * Time.deltaTime;
 
-        if (_isNormalMoving) _targetPosition += verticalMovement;
-        else _targetPosition = transform.position + verticalMovement;
+        if (isNormalMoving)
+        {
+            targetPosition += verticalMovement;
+        }
+        else
+        {
+            targetPosition = transform.position + verticalMovement;
+        }
     }
 
     private void HandleMovementToPrefab()
     {
-        if (!Input.GetKey(KeyCode.F)) return;
+        if (Input.GetKey(KeyCode.F))
+        {
+            GameObject prefab = PrefabDragManager.SelectedObject;
+            if (prefab != null)
+            {
+                // Calculate the target position based on the prefab's position
+                targetPosition = prefab.transform.position - prefab.transform.forward * distanceFromPrefab + Vector3.up * heightAbovePrefab;
 
-        GameObject prefab = PrefabDragManager.SelectedObject;
-        if (prefab == null) return;
+                targetPrefabPosition = prefab.transform.position;
 
-        // Calculate the target position based on the prefab's position
-        _targetPosition = prefab.transform.position - prefab.transform.forward * _distanceFromPrefab + Vector3.up * _heightAbovePrefab;
-
-        _targetPrefabPosition = prefab.transform.position;
-
-        _isMovingToPrefab = true;
+                isMovingToPrefab = true;
+            }
+        }
     }
 
     private void SmoothMovement()
     {
-        // If its close enough to target postion, stop it.
-        if (Vector3.Distance(transform.position, _targetPosition) < 0.1f)
+        // If it's close enough to the target position, stop moving
+        if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
-            if (_isMovingToPrefab)
+            if (isMovingToPrefab)
             {
-                // Update _currentRotation to match the new look-at direction
-                _currentRotation = new Vector2(transform.eulerAngles.y, -transform.eulerAngles.x);
+                // Update currentRotation to match the new look-at direction
+                currentRotation = new Vector2(transform.eulerAngles.y, -transform.eulerAngles.x);
 
-                _isMovingToPrefab = false;
+                isMovingToPrefab = false;
             }
             return;
         }
 
         // Use Lerp to smoothly move the camera towards the target position
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, _targetPosition, _smoothSpeed);
+        Vector3 smoothedPosition = Vector3.Lerp(transform.position, targetPosition, smoothSpeed);
 
         // Update the camera's position
         transform.position = smoothedPosition;
 
-        if (_isMovingToPrefab) transform.LookAt(_targetPrefabPosition);
+        if (isMovingToPrefab)
+        {
+            transform.LookAt(targetPrefabPosition);
+        }
     }
 
     private void HandleRotateInput()
     {
-        if (!Input.GetMouseButton(1)) { Cursor.lockState = CursorLockMode.None; return; }
+        if (Input.GetMouseButton(1))
+        {
+            Cursor.lockState = CursorLockMode.Locked;
 
-        Cursor.lockState = CursorLockMode.Locked;
+            Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
 
-        Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
+            mouseDelta *= mouseSensitivity * smoothRotation * rotationSpeed;
+            smoothMouseInput.x = Mathf.Lerp(smoothMouseInput.x, mouseDelta.x, 1f / smoothRotation);
+            smoothMouseInput.y = Mathf.Lerp(smoothMouseInput.y, mouseDelta.y, 1f / smoothRotation);
 
-        mouseDelta *= _mouseSensitivity * _smoothRotation * _rotationSpeed;
-        _smoothMouseInput.x = Mathf.Lerp(_smoothMouseInput.x, mouseDelta.x, 1f / _smoothRotation);
-        _smoothMouseInput.y = Mathf.Lerp(_smoothMouseInput.y, mouseDelta.y, 1f / _smoothRotation);
+            rotationDelta = smoothMouseInput * Time.deltaTime;
 
-        _rotationDelta = _smoothMouseInput * Time.deltaTime;
+            currentRotation += rotationDelta;
 
-        _currentRotation += _rotationDelta;
+            currentRotation.y = Mathf.Clamp(currentRotation.y, -90, 90);
 
-        _currentRotation.y = Mathf.Clamp(_currentRotation.y, -90, 90);
-
-        transform.localRotation = Quaternion.Euler(-_currentRotation.y, _currentRotation.x, 0);
+            transform.localRotation = Quaternion.Euler(-currentRotation.y, currentRotation.x, 0);
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+        }
     }
 
     private void HandleZoomInput()
     {
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
-        if (Mathf.Approximately(scrollInput, 0.0f)) return;
-
-        float speed = Input.GetKey(KeyCode.LeftShift) ? _fastZoomSpeed : _zoomSpeed;
-        _targetFieldOfView = _cameraComponent.fieldOfView - scrollInput * speed * Time.deltaTime;
-        _targetFieldOfView = Mathf.Clamp(_targetFieldOfView, _minZoom, _maxZoom);
+        if (!Mathf.Approximately(scrollInput, 0.0f))
+        {
+            float speed = Input.GetKey(KeyCode.LeftShift) ? fastZoomSpeed : zoomSpeed;
+            targetFieldOfView = cameraComponent.fieldOfView - scrollInput * speed * Time.deltaTime;
+            targetFieldOfView = Mathf.Clamp(targetFieldOfView, minZoom, maxZoom);
+        }
     }
 
     private void SmoothZoom()
     {
-        if (Mathf.Approximately(Mathf.Abs(_cameraComponent.fieldOfView - _targetFieldOfView), 0.0f))
-            return;
-
-        _cameraComponent.fieldOfView = Mathf.Lerp(_cameraComponent.fieldOfView, _targetFieldOfView, _smoothSpeed * 2);
+        if (!Mathf.Approximately(Mathf.Abs(cameraComponent.fieldOfView - targetFieldOfView), 0.0f))
+        {
+            cameraComponent.fieldOfView = Mathf.Lerp(cameraComponent.fieldOfView, targetFieldOfView, smoothSpeed * 2);
+        }
     }
 
     private bool IsCursorOverUIElement()

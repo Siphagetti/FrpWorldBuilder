@@ -1,6 +1,5 @@
 ﻿using Prefab;
 using Services;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,47 +8,58 @@ using UnityEngine.UI;
 
 namespace Hierarchy
 {
-    internal class HierarchyManager : MonoBehaviour
+    public class HierarchyManager : MonoBehaviour
     {
+        // Serialized fields for inspector setup
         [Header("Hierarchy Content")]
-        [SerializeField] private Transform _hierarchyContent;
+        [SerializeField] private Transform hierarchyContent;
 
         [Header("Hierarchy Prefabs")]
-        [SerializeField] private GameObject _hierarchyGroupButtonPrefab;
-        [SerializeField] private GameObject _hierarchyGroupContainerPrefab;
-        [SerializeField] private GameObject _hierarchyElementPrefab;
+        [SerializeField] private GameObject hierarchyGroupButtonPrefab;
+        [SerializeField] private GameObject hierarchyGroupContainerPrefab;
+        [SerializeField] private GameObject hierarchyElementPrefab;
 
         [Header("Hierarchy New Group")]
-        [SerializeField] private GameObject _newGroupInputField;
+        [SerializeField] private GameObject newGroupInputField;
 
         [Header("Hierarchy Buttons")]
-        [SerializeField] private Button _newGroupButton;
-        [SerializeField] private Button _hierarchyPanelToggleButton;
+        [SerializeField] private Button newGroupButton;
+        [SerializeField] private Button hierarchyPanelToggleButton;
 
-        // Key: group button, Value: group container
-        private Dictionary<GameObject, GameObject> _hierarchyGroups = new();
+        // Constants for group and container prefixes
+        private const string GroupButtonPrefix = "BTN_";
+        private const string GroupContainerPrefix = "Container_";
 
-        // Key: group container, Value: items
-        private Dictionary<GameObject, List<GameObject>> _hierarchyItems = new();
+        // Dictionaries to manage hierarchy groups and items
 
-        private string _groupButtonPrefix = "BTN_";
-        private string _groupContainerPrefix = "Container_";
+        // Key: group button - Value: hierarchy item container
+        private readonly Dictionary<GameObject, GameObject> hierarchyGroups = new Dictionary<GameObject, GameObject>();
+        // Key: hierarchy item container - Value: hierarchy items
+        private readonly Dictionary<GameObject, List<GameObject>> hierarchyItems = new Dictionary<GameObject, List<GameObject>>();
 
-        #region Group
+        private Coroutine newGroupCoroutine;
 
-        Coroutine newGroupCoroutine;
+        // Awake is called when the script instance is being loaded.
+        private void Awake()
+        {
+            // Attach a click listener to the "New Group" button.
+            newGroupButton.onClick.AddListener(CreateNewGroup);
+        }
 
+        // Coroutine to handle creating a new group
         private void CreateNewGroup()
         {
             if (newGroupCoroutine != null) StopCoroutine(newGroupCoroutine);
-            newGroupCoroutine = GameManager.NewCoroutine(NewGroupCoroutine());
+            newGroupCoroutine = StartCoroutine(NewGroupCoroutine());
         }
 
+        // Coroutine to create a new group with user input
         private IEnumerator NewGroupCoroutine()
         {
-            _newGroupInputField.SetActive(true);
+            // Show the input field for creating a new group.
+            newGroupInputField.SetActive(true);
 
-            var inputFiled = _newGroupInputField.GetComponentInChildren<TMPro.TMP_InputField>();
+            var inputField = newGroupInputField.GetComponentInChildren<TMPro.TMP_InputField>();
 
             string newGroup = "";
             var prefabService = ServiceManager.GetService<IPrefabService>();
@@ -58,194 +68,227 @@ namespace Hierarchy
             {
                 if (Input.GetKeyUp(KeyCode.Return))
                 {
-                    newGroup = inputFiled.text;
+                    newGroup = inputField.text;
 
+                    // Check if the new group name already exists.
                     if (prefabService.GetCategories().Contains(newGroup))
+                    {
                         Log.Logger.Log_Error("group_exists", newGroup);
+                    }
                     else
                     {
+                        // Create a new group and add it to the hierarchy.
                         prefabService.NewCategory(newGroup);
-                        inputFiled.text = "";
-                        _newGroupInputField.SetActive(false);
+                        inputField.text = "";
+                        newGroupInputField.SetActive(false);
                         CreateGroup(newGroup);
                         yield break;
                     }
                 }
                 yield return null;
             }
-            inputFiled.text = "";
-            _newGroupInputField.SetActive(false);
+            inputField.text = "";
+            newGroupInputField.SetActive(false);
         }
 
+        // Create a new group and add it to the hierarchy
         private GameObject CreateGroup(string groupName)
         {
-            var groupButton = Instantiate(_hierarchyGroupButtonPrefab, _hierarchyContent);
-            groupButton.name = _groupButtonPrefix + groupName ;
+            // Instantiate a new group button and group container.
+            var groupButton = Instantiate(hierarchyGroupButtonPrefab, hierarchyContent);
+            groupButton.name = GroupButtonPrefix + groupName;
             groupButton.GetComponentInChildren<TMPro.TMP_Text>().text = groupName;
 
-            var groupContainer = Instantiate(_hierarchyGroupContainerPrefab, _hierarchyContent);
-            groupContainer.name = _groupContainerPrefix + groupName;
+            var groupContainer = Instantiate(hierarchyGroupContainerPrefab, hierarchyContent);
+            groupContainer.name = GroupContainerPrefix + groupName;
+
+            // Attach a click listener to toggle the group container's visibility.
             groupButton.GetComponent<Button>().onClick.AddListener(() => groupContainer.SetActive(!groupContainer.activeSelf));
 
-            _hierarchyGroups.Add(groupButton, groupContainer);
-            _hierarchyItems.Add(groupContainer, new());
+            // Add the group button and container to the dictionaries.
+            hierarchyGroups.Add(groupButton, groupContainer);
+            hierarchyItems.Add(groupContainer, new List<GameObject>());
 
             return groupButton;
         }
 
+        // Delete a group from the hierarchy
         public void DeleteGroup(GameObject groupButton)
         {
-            GameManager.NewCoroutine(DeleteGroupCoroutine());
-
-            IEnumerator DeleteGroupCoroutine()
-            {
-                string groupName = groupButton.GetComponentInChildren<TMPro.TMP_Text>().text;
-
-                bool result = false;
-                yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_hierarchy_group", groupName));
-                if (result == false) yield break;
-
-                var groupContainer = _hierarchyGroups[groupButton];
-                _hierarchyItems.Remove(groupContainer);
-                _hierarchyGroups.Remove(groupButton);
-
-                Destroy(groupContainer);
-                Destroy(groupButton);
-            }
+            StartCoroutine(DeleteGroupCoroutine(groupButton));
         }
 
-        #endregion
+        // Coroutine to handle the deletion of a group
+        private IEnumerator DeleteGroupCoroutine(GameObject groupButton)
+        {
+            string groupName = groupButton.GetComponentInChildren<TMPro.TMP_Text>().text;
 
-        #region Hierarchy Element
+            bool result = false;
 
+            // Show a confirmation popup before deleting the group.
+            yield return StartCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_hierarchy_group", groupName));
+            if (result == false) yield break;
+
+            var groupContainer = hierarchyGroups[groupButton];
+
+            // Remove the group container and button from the dictionaries.
+            hierarchyItems.Remove(groupContainer);
+            hierarchyGroups.Remove(groupButton);
+
+            // Destroy the group container and button.
+            Destroy(groupContainer);
+            Destroy(groupButton);
+        }
+
+        // Load a hierarchy element into a group
         public void LoadHierarchyElement(Prefab.Prefab prefab, string groupName)
         {
             GameObject groupButton = null;
+
             if (groupName != "")
             {
-                groupButton = _hierarchyGroups.Keys.FirstOrDefault(g => g.GetComponentInChildren<TMPro.TMP_Text>().text == groupName);
+                // Find the group button associated with the given group name, or create one if not found.
+                groupButton = hierarchyGroups.Keys.FirstOrDefault(g => g.GetComponentInChildren<TMPro.TMP_Text>().text == groupName);
                 if (groupButton == null) groupButton = CreateGroup(groupName);
             }
 
+            // Instantiate a new hierarchy element and add it to the hierarchy.
             var newHierarchyElement = Instantiate(
-                _hierarchyElementPrefab,
-                groupName == "" ? _hierarchyContent : _hierarchyGroups[groupButton].transform);
+                hierarchyElementPrefab,
+                groupName == "" ? hierarchyContent : hierarchyGroups[groupButton].transform);
 
             newHierarchyElement.GetComponent<HierarchyElement>().Prefab = prefab;
             newHierarchyElement.GetComponentInChildren<TMPro.TMP_Text>().text = prefab.Data.prefabName;
 
-            if (groupName != "") _hierarchyItems[_hierarchyGroups[groupButton]].Add(newHierarchyElement);
+            if (groupName != "") hierarchyItems[hierarchyGroups[groupButton]].Add(newHierarchyElement);
         }
 
+        // Add a hierarchy element to the root of the hierarchy
         public void AddHierarchyElement(Prefab.Prefab prefab)
         {
-            var newHierarchyElement = Instantiate(_hierarchyElementPrefab, _hierarchyContent);
+            // Instantiate a new hierarchy element and add it to the root of the hierarchy.
+            var newHierarchyElement = Instantiate(hierarchyElementPrefab, hierarchyContent);
             newHierarchyElement.GetComponent<HierarchyElement>().Prefab = prefab;
             newHierarchyElement.GetComponentInChildren<TMPro.TMP_Text>().text = prefab.Data.prefabName;
 
             ServiceManager.GetService<ISceneService>().AddPrefabToCurrentScene(prefab);
         }
 
+        // Change the group of a hierarchy element
         public void ChangeHierarchyElementGroup(Transform element, GameObject targetGroup)
         {
-            // If want to remove group
-            if (targetGroup == _hierarchyContent.gameObject)
+            // Check if the target group is the root hierarchy content.
+            if (targetGroup == hierarchyContent.gameObject)
             {
-                // Remove from previous group
-                if (_hierarchyGroups.ContainsValue(element.parent.gameObject))
+                // If the element's current parent is a group container, remove it from the group's item list.
+                if (hierarchyGroups.ContainsValue(element.parent.gameObject))
                 {
-                    _hierarchyItems[element.parent.gameObject].Remove(element.gameObject);
-                    GameManager.NewCoroutine(GroupContainerRefresh(element.parent.gameObject));
+                    hierarchyItems[element.parent.gameObject].Remove(element.gameObject);
+                    StartCoroutine(GroupContainerRefresh(element.parent.gameObject));
                 }
-                
+
+                // Set the element's parent to the root hierarchy content.
                 element.SetParent(targetGroup.transform);
                 element.GetComponent<HierarchyElement>().Prefab.Data.hierarchyGroupName = "";
             }
-            // If targetGroup is a group button
-            else if (_hierarchyGroups.ContainsKey(targetGroup))
+            // Check if the target group is an existing group button.
+            else if (hierarchyGroups.ContainsKey(targetGroup))
             {
-                // Remove from previous group
-                if (_hierarchyGroups.ContainsValue(element.parent.gameObject))
+                // If the element's current parent is a group container, remove it from the group's item list.
+                if (hierarchyGroups.ContainsValue(element.parent.gameObject))
                 {
-                    _hierarchyItems[element.parent.gameObject].Remove(element.gameObject);
-                    GameManager.NewCoroutine(GroupContainerRefresh(element.parent.gameObject));
-                }
-                
-                // Add to new group
-                element.SetParent(_hierarchyGroups[targetGroup].transform);
-                _hierarchyItems[_hierarchyGroups[targetGroup]].Add(element.gameObject);
-                element.GetComponent<HierarchyElement>().Prefab.Data.hierarchyGroupName = targetGroup.name.Replace(_groupButtonPrefix, "");
-                GameManager.NewCoroutine(GroupContainerRefresh(element.parent.gameObject));
-            }
-            
-            // If targetGroup is a container
-            else if (_hierarchyGroups.ContainsValue(targetGroup))
-            {
-                // Remove from previous group
-                if (_hierarchyGroups.ContainsValue(element.parent.gameObject))
-                {
-                    _hierarchyItems[element.parent.gameObject].Remove(element.gameObject);
-                    GameManager.NewCoroutine(GroupContainerRefresh(element.parent.gameObject));
+                    hierarchyItems[element.parent.gameObject].Remove(element.gameObject);
+                    StartCoroutine(GroupContainerRefresh(element.parent.gameObject));
                 }
 
-                // Add to new group
+                // Set the element's parent to the selected group's container.
+                element.SetParent(hierarchyGroups[targetGroup].transform);
+
+                // Add the element to the selected group's item list.
+                hierarchyItems[hierarchyGroups[targetGroup]].Add(element.gameObject);
+
+                // Update the element's hierarchy group name based on the target group's name.
+                element.GetComponent<HierarchyElement>().Prefab.Data.hierarchyGroupName = targetGroup.name.Replace(GroupButtonPrefix, "");
+
+                // Refresh the target group's visibility in the hierarchy.
+                StartCoroutine(GroupContainerRefresh(element.parent.gameObject));
+            }
+            // Check if the target group is an existing group container.
+            else if (hierarchyGroups.ContainsValue(targetGroup))
+            {
+                // If the element's current parent is a group container, remove it from the group's item list.
+                if (hierarchyGroups.ContainsValue(element.parent.gameObject))
+                {
+                    hierarchyItems[element.parent.gameObject].Remove(element.gameObject);
+                    StartCoroutine(GroupContainerRefresh(element.parent.gameObject));
+                }
+
+                // Set the element's parent to the selected group's container.
                 element.SetParent(targetGroup.transform);
-                _hierarchyItems[targetGroup].Add(element.gameObject);
-                element.GetComponent<HierarchyElement>().Prefab.Data.hierarchyGroupName = targetGroup.name.Replace(_groupContainerPrefix, "");
-                GameManager.NewCoroutine(GroupContainerRefresh(element.parent.gameObject));
-            }
 
+                // Add the element to the selected group's item list.
+                hierarchyItems[targetGroup].Add(element.gameObject);
+
+                // Update the element's hierarchy group name based on the target group's name.
+                element.GetComponent<HierarchyElement>().Prefab.Data.hierarchyGroupName = targetGroup.name.Replace(GroupContainerPrefix, "");
+
+                // Refresh the target group's visibility in the hierarchy.
+                StartCoroutine(GroupContainerRefresh(element.parent.gameObject));
+            }
         }
 
+        // Delete a hierarchy element
         public void DeleteHierarchyElement(GameObject element, GameObject group = null)
         {
-            GameManager.NewCoroutine(DeleteElementCoroutine());
+            StartCoroutine(DeleteElementCoroutine(element, group));
+        }
 
-            IEnumerator DeleteElementCoroutine()
+        // Coroutine to handle the deletion of a hierarchy element
+        private IEnumerator DeleteElementCoroutine(GameObject element, GameObject group = null)
+        {
+            string elementName = element.GetComponentInChildren<TMPro.TMP_Text>().text;
+
+            bool result = false;
+
+            // Show a confirmation popup before deleting the element.
+            yield return StartCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_hierarchy_element", elementName));
+            if (result == false) yield break;
+
+            ServiceManager.GetService<ISceneService>().DeletePrefab(element.GetComponent<HierarchyElement>().Prefab);
+            Destroy(element);
+
+            if (group == null)
             {
-                string elementName = element.GetComponentInChildren<TMPro.TMP_Text>().text;
-
-                bool result = false;
-                yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_hierarchy_element", elementName));
-                if (result == false) yield break;
-
-                ServiceManager.GetService<ISceneService>().DeletePrefab(element.GetComponent<HierarchyElement>().Prefab);
-                Destroy(element);
-
-                if (group == null)
+                foreach (var container in hierarchyItems.Keys)
                 {
-                    foreach (var container in _hierarchyItems.Keys)
+                    if (hierarchyItems[container].Contains(element))
                     {
-                        if (_hierarchyItems[container].Contains(element))
-                        {
-                            _hierarchyItems[container].Remove(element);
-                            GameManager.NewCoroutine(GroupContainerRefresh(container));
-                            yield break;
-                        }
+                        hierarchyItems[container].Remove(element);
+                        StartCoroutine(GroupContainerRefresh(container));
+                        yield break;
                     }
                 }
-
-                else if (_hierarchyItems.ContainsKey(group))
-                {
-                    _hierarchyItems[group].Remove(element);
-                    GameManager.NewCoroutine(GroupContainerRefresh(group));
-                }
-                
+            }
+            else if (hierarchyItems.ContainsKey(group))
+            {
+                hierarchyItems[group].Remove(element);
+                StartCoroutine(GroupContainerRefresh(group));
             }
         }
 
-        IEnumerator GroupContainerRefresh(GameObject container)
+        // Coroutine to refresh a group container's visibility
+        private IEnumerator GroupContainerRefresh(GameObject container)
         {
             container?.SetActive(false);
             yield return null;
             container?.SetActive(true);
         }
 
-        #endregion
-
-        private void Awake()
+        // Reset the hierarchy by clearing the dictionaries
+        public void ResetHierarchy()
         {
-            _newGroupButton.onClick.AddListener(CreateNewGroup);
+            hierarchyItems.Clear();
+            hierarchyGroups.Clear();
         }
     }
 }

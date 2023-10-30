@@ -7,13 +7,13 @@ namespace Prefab
     public class PrefabDragManager : MonoBehaviour
     {
         // Camera distance for '_draggingObj'
-        // This will come from camera movement script in the future. (maybe)
+        // This will come from a camera movement script in the future. (maybe)
         private float CamDist { get; set; } = 10f;
 
         private bool _isDragging;
         public static GameObject SelectedObject { get; private set; }
 
-        // Mouse offset where cursor begin to drag the '_draggingObj'
+        // Mouse offset where the cursor begins to drag the '_draggingObj'
         private Vector3 _mouseOffset;
 
         // Target layer for raycast.
@@ -51,7 +51,6 @@ namespace Prefab
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer)) SelectObject(hit.collider.gameObject);
             else if (SelectedObject != null && !FindFirstObjectByType<CameraController>().IsUIClicked) DeselectObject();
-
         }
 
         public void SelectObject(GameObject obj)
@@ -74,8 +73,7 @@ namespace Prefab
             _isDragging = false;
         }
 
-
-        // Requires for Thumbnail to move its prefab after instantiate it.
+        // Required for Thumbnail to move its prefab after instantiating it.
         public void SetSelectedObject(GameObject obj)
         {
             Vector3 screenPosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist);
@@ -83,7 +81,7 @@ namespace Prefab
 
             obj.transform.position = newPosition;
 
-            DontShineMesh(); // If there is a previous selected mesh stop its shining.
+            DontShineMesh(); // If there is a previously selected mesh, stop its shining.
 
             SelectedObject = obj;
             _mouseOffset = obj.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CamDist));
@@ -109,22 +107,22 @@ namespace Prefab
         private int _yPos;
         private float _duration = 0.3f;
 
-        Coroutine HideOrRevealCoorutine;
+        Coroutine HideOrRevealCoroutine;
 
         private void HidePanel()
         {
-            if (HideOrRevealCoorutine != null)
-                StopCoroutine(HideOrRevealCoorutine);
+            if (HideOrRevealCoroutine != null)
+                StopCoroutine(HideOrRevealCoroutine);
 
-            HideOrRevealCoorutine = StartCoroutine(HidePanelCoroutine());
+            HideOrRevealCoroutine = StartCoroutine(HidePanelCoroutine());
         }
 
         private void RevealPanel()
         {
-            if (HideOrRevealCoorutine != null)
-                StopCoroutine(HideOrRevealCoorutine);
+            if (HideOrRevealCoroutine != null)
+                StopCoroutine(HideOrRevealCoroutine);
 
-            HideOrRevealCoorutine = StartCoroutine(RevealPanelCoroutine());
+            HideOrRevealCoroutine = StartCoroutine(RevealPanelCoroutine());
         }
 
         IEnumerator HidePanelCoroutine()
@@ -142,7 +140,7 @@ namespace Prefab
 
             rect.anchoredPosition = targetPos; // Ensure the final position is exactly at the target
 
-            HideOrRevealCoorutine = null;
+            HideOrRevealCoroutine = null;
         }
 
         IEnumerator RevealPanelCoroutine()
@@ -161,7 +159,7 @@ namespace Prefab
 
             rect.anchoredPosition = targetPos; // Ensure the final position is exactly at the target
 
-            HideOrRevealCoorutine = null;
+            HideOrRevealCoroutine = null;
         }
 
         #endregion

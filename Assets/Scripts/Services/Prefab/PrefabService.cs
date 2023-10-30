@@ -10,116 +10,124 @@ namespace Prefab
 {
     internal class PrefabService : IPrefabService
     {
-        private readonly string _subFolderName;
-        private readonly string _rootFolderPath;
+        // Fields for the subfolder name and root folder path
+        private readonly string subFolderName;
+        private readonly string rootFolderPath;
 
-        private PrefabRepository _prefabRepo;
+        private PrefabRepository prefabRepo;
 
-        public PrefabRepository GetRepository() => _prefabRepo;
+        public PrefabRepository GetRepository() => prefabRepo;
 
         public PrefabService()
         {
-            _subFolderName = "AssetBundles";
-            _rootFolderPath = Path.Combine(Application.streamingAssetsPath, _subFolderName);
+            subFolderName = "AssetBundles";
+            rootFolderPath = Path.Combine(Application.streamingAssetsPath, subFolderName);
 
-            if (!Directory.Exists(_rootFolderPath)) Directory.CreateDirectory(_rootFolderPath);
+            // Ensure the root folder exists
+            if (!Directory.Exists(rootFolderPath))
+            {
+                Directory.CreateDirectory(rootFolderPath);
+            }
 
-            _prefabRepo = new PrefabRepository(GetCategories());
+            prefabRepo = new PrefabRepository(GetCategories());
 
             LoadAllPrefabs();
         }
 
+        // Get a list of category names from subfolders
         public IEnumerable<string> GetCategories()
         {
-            /*
-                Categories are subfolders of the root folder. 
-            */
-
-            IEnumerable<string> categories = Directory.GetDirectories(_rootFolderPath, "*", SearchOption.TopDirectoryOnly).Select(c => Path.GetFileName(c));
+            IEnumerable<string> categories = Directory.GetDirectories(rootFolderPath, "*", SearchOption.TopDirectoryOnly)
+                .Select(c => Path.GetFileName(c));
             return categories;
         }
 
+        // Import an asset bundle and add prefabs to the repository
         public async Task<Response<(string, Prefab[])>> ImportAssetBundle(string category)
         {
             var extensionList = new[] { new ExtensionFilter("File", "*") };
 
-            // Get asset bundles to be imported.
             var assetBundlePaths = StandaloneFileBrowser.OpenFilePanel("Select Asset Bundle", "", extensionList, false);
 
-            if (assetBundlePaths == null || assetBundlePaths.Length == 0) return new Response<(string, Prefab[])>() { Success = false };
+            if (assetBundlePaths == null || assetBundlePaths.Length == 0)
+            {
+                return new Response<(string, Prefab[])>() { Success = false };
+            }
 
             var assetBundlePath = assetBundlePaths[0];
-
-            var categoryFolderPath = Path.Combine(_rootFolderPath, category);
-
+            var categoryFolderPath = Path.Combine(rootFolderPath, category);
             var fileName = Path.GetFileName(assetBundlePath);
 
-            // If there is file that has the same name with the importing asset bundle cancel import and return null.
             if (File.Exists(Path.Combine(categoryFolderPath, fileName)))
             {
                 Log.Logger.Log_Error("asset_bundle_exists", fileName, category);
                 return new Response<(string, Prefab[])>() { Success = false };
             }
 
-            // Response has asset bundle name as result.
             var response = await LoadAssetBundle(category, assetBundlePath);
 
-            if (!response.Success) return new Response<(string, Prefab[])>() { Success = false };
+            if (!response.Success)
+            {
+                return new Response<(string, Prefab[])>() { Success = false };
+            }
 
             File.Copy(assetBundlePath, Path.Combine(categoryFolderPath, fileName));
 
-            var prefabs = _prefabRepo.GetPrefabs(category, response.Result);
+            var prefabs = prefabRepo.GetPrefabs(category, response.Result);
 
             return new Response<(string, Prefab[])>() { Success = true, Result = (response.Result, prefabs) };
         }
 
+        // Delete a category and its associated asset bundles
         public void DeleteCategory(string category)
         {
-            _prefabRepo.RemoveCategory(category);
+            prefabRepo.RemoveCategory(category);
 
-            var folderPath = Path.Combine(_rootFolderPath, category);
+            var folderPath = Path.Combine(rootFolderPath, category);
             Directory.Delete(folderPath, true);
         }
 
+        // Delete an asset bundle and its associated prefabs
         public void DeleteAssetBundle(string category, string bundleName)
         {
-            _prefabRepo.RemoveAssetBundle(category, bundleName);
+            prefabRepo.RemoveAssetBundle(category, bundleName);
 
-            var filePath = Path.Combine(Path.Combine(_rootFolderPath, category), bundleName);
+            var filePath = Path.Combine(Path.Combine(rootFolderPath, category), bundleName);
             File.Delete(filePath);
         }
 
+        // Load all prefabs from asset bundles
         private async void LoadAllPrefabs()
         {
-            List<Task> loadTasks = new();
-            
-            foreach (var category in GetCategories()) loadTasks.Add(LoadAssetBundlesInCategory(category));
+            List<Task> loadTasks = new List<Task>();
+
+            foreach (var category in GetCategories())
+            {
+                loadTasks.Add(LoadAssetBundlesInCategory(category));
+            }
 
             await Task.WhenAll(loadTasks);
         }
 
+        // Load asset bundles in a category
         private async Task LoadAssetBundlesInCategory(string category)
         {
-            // Get category folder path
-            var categoryFolderPath = Path.Combine(_rootFolderPath, category);
-
-            // Get all asset bundles paths.
+            var categoryFolderPath = Path.Combine(rootFolderPath, category);
             string[] bundlePaths = Directory.GetFiles(categoryFolderPath, "*.", SearchOption.TopDirectoryOnly);
 
-            List<Task> loadBundles = new();
-            foreach (var bundlePath in bundlePaths) loadBundles.Add(LoadAssetBundle(category, bundlePath));
+            List<Task> loadBundles = new List<Task>();
+
+            foreach (var bundlePath in bundlePaths)
+            {
+                loadBundles.Add(LoadAssetBundle(category, bundlePath));
+            }
 
             await Task.WhenAll(loadBundles);
         }
 
+        // Load assets from an asset bundle and add them to the repository
         private async Task<Response<string>> LoadAssetBundle(string category, string bundlePath)
         {
-            /*
-                Loads prefabs in an asset bundle.
-                Returns asset bundle name.
-            */
-
-
             AssetBundle bundle = AssetBundle.LoadFromFile(bundlePath);
 
             if (bundle == null)
@@ -129,7 +137,6 @@ namespace Prefab
             }
 
             var prefabs = bundle.LoadAllAssets<GameObject>();
-
             var readyPrefabs = new List<Prefab>();
 
             prefabs.ToList().ForEach(p =>
@@ -139,8 +146,8 @@ namespace Prefab
                 if (success) readyPrefabs.Add(prefabComponent);
             });
 
-            _prefabRepo.AddCategory(category);
-            _prefabRepo.AddAssetBundle(category, bundle.name, readyPrefabs.ToArray());
+            prefabRepo.AddCategory(category);
+            prefabRepo.AddAssetBundle(category, bundle.name, readyPrefabs.ToArray());
 
             string bundleName = bundle.name;
             bundle.Unload(false);
@@ -148,12 +155,14 @@ namespace Prefab
             return await Task.FromResult(new Response<string>() { Success = true, Result = bundleName });
         }
 
+        // Create a new category folder
         public void NewCategory(string categoryName)
         {
-            var newCategoryPath = Path.Combine(_rootFolderPath, categoryName);
+            var newCategoryPath = Path.Combine(rootFolderPath, categoryName);
             Directory.CreateDirectory(newCategoryPath);
         }
 
+        // Load prefabs into the scene based on prefab data
         public List<Prefab> LoadPrefabs(Transform parent, List<PrefabDTO> prefabsData)
         {
             var hierarchyManager = Object.FindFirstObjectByType<HierarchyManager>();
@@ -161,14 +170,17 @@ namespace Prefab
 
             foreach (var prefabData in prefabsData)
             {
-                var prefab = _prefabRepo.GetPrefab(prefabData.assetBundleName, prefabData.prefabName);
+                var prefab = prefabRepo.GetPrefab(prefabData.assetBundleName, prefabData.prefabName);
+
                 var wrapper = prefab.CreateWrapper(prefabData.transform.position);
                 prefab = wrapper.GetComponent<Prefab>();
                 prefab.Data = prefabData;
                 prefabs.Add(prefab);
+
                 wrapper.transform.rotation = prefabData.transform.rotation;
                 wrapper.transform.localScale = prefabData.transform.localScale;
                 wrapper.transform.SetParent(parent, true);
+
                 hierarchyManager.GetComponent<HierarchyManager>().LoadHierarchyElement(prefab, prefabData.hierarchyGroupName);
             }
 

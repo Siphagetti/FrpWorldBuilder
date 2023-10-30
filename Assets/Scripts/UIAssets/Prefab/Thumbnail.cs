@@ -1,7 +1,5 @@
 using Hierarchy;
-using Save;
 using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,6 +8,7 @@ namespace Prefab
 {
     public class Thumbnail : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
+        // Properties to set the owner UI panel's RectTransform and the drag manager
         public static RectTransform OwnerUIPanelRect { get; set; }
         public static PrefabDragManager dragManager { get; set; }
 
@@ -18,47 +17,52 @@ namespace Prefab
 
         private GameObject _prefab;
 
-        // Content that UI element belongs to.
+        // Reference to the parent transform of the UI element
         private Transform _parentTransform;
 
-        // Keep sibling index to put in its beginning place 
+        // Keep the initial sibling index to restore it after dragging
         private int _initialSiblingIndex;
 
-        // Offset for drag the UI element from where its been hold.
+        // Offset for dragging the UI element from where it's held
         private Vector3 _mouseOffset;
 
-        // Hide UI when cursor should drag the spawned prefab.
+        // Flag to hide the UI element while dragging the prefab
         private bool _hideUI;
 
-
+        // The spawned prefab that follows the cursor
         private GameObject _spawnedPrefab;
+
+        // Position to place the spawned prefab when hidden
         private Vector3 _prefabSpawnPos = 10000 * Vector3.one;
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            // Store the parent transform of the UI element
             _parentTransform = transform.parent;
 
             // Store the initial sibling index
             _initialSiblingIndex = transform.GetSiblingIndex();
 
+            // Reparent the UI element to the root canvas
             transform.SetParent(transform.root);
 
+            // Calculate the mouse offset
             _mouseOffset = transform.position - Input.mousePosition;
 
+            // Initialize the hide UI flag
             _hideUI = false;
 
-            // Keep instantiated prefab at invisible position.
+            // Create the spawned prefab at an invisible position
             _spawnedPrefab = _prefab.GetComponent<Prefab>().CreateWrapper(_prefabSpawnPos);
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            // If prefab not spawned, just move the ui element
-            if (!_hideUI) transform.position = Input.mousePosition + _mouseOffset;
+            // If the UI element should not be hidden, move it with the cursor
+            if (!_hideUI)
+                transform.position = Input.mousePosition + _mouseOffset;
 
-            // -------------- Control UI Position --------------
-
-            // Convert the screen space position to the owner UI panel's local position
+            // Control UI position based on cursor position
             Vector2 localMousePosition;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(OwnerUIPanelRect, Input.mousePosition, null, out localMousePosition);
 
@@ -67,52 +71,67 @@ namespace Prefab
 
             if (localMousePosition.y > elementHeight / 2)
             {
+                // If the UI element was already hidden, return
                 if (_hideUI) return;
 
-                // Set instantiated prefab as dragging object of Drag Manager.
+                // Set the spawned prefab as the dragging object in the drag manager
                 dragManager.SetSelectedObject(_spawnedPrefab);
 
+                // Hide the UI image and text
                 _image.gameObject.SetActive(false);
                 _text.gameObject.SetActive(false);
 
+                // Update the hide UI flag
                 _hideUI = true;
             }
             else
             {
+                // If the UI element was not hidden, return
                 if (!_hideUI) return;
 
-                // Set instantiated prefab's position as '_prefabSpawnPos' back  
-                // and unassign dragging object
+                // Restore the spawned prefab's position to its original hidden position
+                // and unassign the dragging object in the drag manager
                 _spawnedPrefab.transform.position = _prefabSpawnPos;
                 dragManager.DeselectObject();
 
+                // Show the UI image and text
                 _image.gameObject.SetActive(true);
                 _text.gameObject.SetActive(true);
 
+                // Update the hide UI flag
                 _hideUI = false;
             }
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            // If the UI element was hidden, show the UI image and text
             if (_hideUI)
             {
                 _image.gameObject.SetActive(true);
                 _text.gameObject.SetActive(true);
             }
 
-            if (_spawnedPrefab.transform.position == _prefabSpawnPos) Destroy(_spawnedPrefab);
+            // Check if the spawned prefab's position is the hidden position
+            if (_spawnedPrefab.transform.position == _prefabSpawnPos)
+            {
+                // Destroy the spawned prefab
+                Destroy(_spawnedPrefab);
+            }
             else
             {
+                // Update the prefab's transform and assign a new GUID
                 Prefab prefab = _spawnedPrefab.GetComponent<Prefab>();
                 prefab.UpdateTransform();
                 prefab.Data.guid = Guid.NewGuid().ToString();
+                // Add the hierarchy element to the hierarchy manager
                 FindFirstObjectByType<HierarchyManager>().AddHierarchyElement(prefab);
             }
-            // Set UI's parent as its beginning parent.
+
+            // Set the UI's parent as its initial parent
             transform.SetParent(_parentTransform);
 
-            // Set the element's sibling index back to the initial index
+            // Restore the element's sibling index to the initial index
             transform.SetSiblingIndex(_initialSiblingIndex);
         }
 
