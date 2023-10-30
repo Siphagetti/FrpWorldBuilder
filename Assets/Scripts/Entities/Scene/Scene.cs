@@ -19,7 +19,8 @@ namespace Hierarchy
 
         // Lists to store prefab data and the hierarchy structure
         public List<Prefab.Prefab> PrefabList { get; private set; } = new List<Prefab.Prefab>();
-        private List<PrefabDTO> hierarchy = new List<PrefabDTO>();
+
+        [SerializeField] private List<PrefabDTO> hierarchy = new List<PrefabDTO>();
 
         public Scene(string sceneName)
         {
