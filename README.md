@@ -16,7 +16,7 @@ This project is a Unity-based game/application with modular components organized
   - [IPrefabService Interface](#iprefabservice-interface)
   - [PrefabService Class](#prefabservice-class)
   - [Thumbnail Class](#thumbnail-class)
-  - 
+  
 - [Services Namespace](#services-namespace)
   - [IBaseService Interface](#ibaseservice-interface)
   - [ServiceManager Class](#servicemanager-class)
