@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Prefab;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Hierarchy
 {
-    internal class HierarchyElement : MonoBehaviour
+    internal class HierarchyElement : MonoBehaviour, IPointerClickHandler
     {
         public Prefab.Prefab Prefab { get; set; }
 
-        private string groupName;
-
-        public void SetGroup(string groupName)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            this.groupName = groupName;
-            Prefab.Data.hierarchyGroupName = groupName;
+            if (eventData.button == PointerEventData.InputButton.Left)
+                FindFirstObjectByType<PrefabDragManager>().SelectObject(Prefab.gameObject);
         }
     }
 }

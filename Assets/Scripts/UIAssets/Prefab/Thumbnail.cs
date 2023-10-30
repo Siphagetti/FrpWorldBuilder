@@ -1,5 +1,7 @@
 using Hierarchy;
 using Save;
+using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -104,6 +106,7 @@ namespace Prefab
             {
                 Prefab prefab = _spawnedPrefab.GetComponent<Prefab>();
                 prefab.UpdateTransform();
+                prefab.Data.guid = Guid.NewGuid().ToString();
                 FindFirstObjectByType<HierarchyManager>().AddHierarchyElement(prefab);
             }
             // Set UI's parent as its beginning parent.

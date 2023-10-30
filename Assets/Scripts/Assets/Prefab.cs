@@ -71,11 +71,38 @@ namespace Prefab
     [Serializable]
     public class PrefabDTO
     {
+        public string guid;
         public string prefabName;
         public string assetBundleName;
         public string hierarchyGroupName = "";
-
         public SerializableTransform transform;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PrefabDTO other)
+            {
+                // Compare all fields except the transform
+                return
+                    guid == other.guid &&
+                    prefabName == other.prefabName &&
+                    assetBundleName == other.assetBundleName &&
+                    hierarchyGroupName == other.hierarchyGroupName;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = 17;
+                hashCode = (hashCode * 23) + guid.GetHashCode();
+                hashCode = (hashCode * 23) + prefabName.GetHashCode();
+                hashCode = (hashCode * 23) + assetBundleName.GetHashCode();
+                hashCode = (hashCode * 23) + hierarchyGroupName.GetHashCode();
+                return hashCode;
+            }
+        }
     }
 
     public class Prefab : MonoBehaviour
@@ -184,7 +211,9 @@ namespace Prefab
 
             // Add mesh components to the wrapper
             wrapper.AddComponent<MeshFilter>().mesh = _combinedMesh;
-            wrapper.AddComponent<MeshRenderer>().materials = _rimMaterials;
+            var meshRenderer = wrapper.AddComponent<MeshRenderer>();
+            meshRenderer.materials = _rimMaterials;
+            meshRenderer.enabled = false;
 
             // Transfer the Prefab class properties to the wrapper
             Prefab prefabComponent = wrapper.AddComponent<Prefab>();

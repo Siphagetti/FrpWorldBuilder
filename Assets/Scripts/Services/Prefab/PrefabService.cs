@@ -163,7 +163,9 @@ namespace Prefab
             {
                 var prefab = _prefabRepo.GetPrefab(prefabData.assetBundleName, prefabData.prefabName);
                 var wrapper = prefab.CreateWrapper(prefabData.transform.position);
-                prefabs.Add(wrapper.GetComponent<Prefab>());
+                prefab = wrapper.GetComponent<Prefab>();
+                prefab.Data = prefabData;
+                prefabs.Add(prefab);
                 wrapper.transform.rotation = prefabData.transform.rotation;
                 wrapper.transform.localScale = prefabData.transform.localScale;
                 wrapper.transform.SetParent(parent, true);

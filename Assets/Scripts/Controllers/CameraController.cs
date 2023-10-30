@@ -1,5 +1,4 @@
 ﻿using Prefab;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -40,7 +39,7 @@ public class CameraController : MonoBehaviour
     private bool _isNormalMoving = false;
     private bool _isMovingToPrefab = false;
 
-    private bool _isUIClicked = false;
+    public bool IsUIClicked { get; set; } = false;
 
     private void Awake()
     {
@@ -53,22 +52,26 @@ public class CameraController : MonoBehaviour
     {
         bool isCursorOverUI = IsCursorOverUIElement();
 
-        if (Input.GetMouseButtonDown(0)) _isUIClicked = isCursorOverUI;
-
-        if (_isUIClicked) return;
+        if (Input.GetMouseButtonDown(0)) IsUIClicked = isCursorOverUI;
 
         HandleMovementToPrefab();
 
-        if (!_isMovingToPrefab)
+        if (!IsUIClicked)
         {
-            HandleMovementInput();
-            HandleVerticalMovementInput();
-            HandleRotateInput();
-            if (!isCursorOverUI) HandleZoomInput();
+            if (!_isMovingToPrefab)
+            {
+                HandleMovementInput();
+                HandleVerticalMovementInput();
+                if (!isCursorOverUI)
+                {
+                    HandleRotateInput();
+                    HandleZoomInput();
+                }
+            }
+            SmoothZoom();
         }
 
         SmoothMovement();
-        SmoothZoom();
     }
 
     private void HandleMovementInput()

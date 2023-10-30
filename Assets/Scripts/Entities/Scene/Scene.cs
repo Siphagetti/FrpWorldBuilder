@@ -58,7 +58,7 @@ namespace Hierarchy
             {
                 string jsonString = File.ReadAllText(jsonFilePath);
                 JsonUtility.FromJsonOverwrite(jsonString, this);
-                ServiceManager.GetService<IPrefabService>().LoadPrefabs(_root.transform, hierarchy);
+                PrefabList = ServiceManager.GetService<IPrefabService>().LoadPrefabs(_root.transform, hierarchy);
             }
         }
 

@@ -19,16 +19,18 @@ public class GameManager : MonoBehaviour
 
         new SaveManager(); // Initialize Save Manager.
         new ServiceManager(); // Initialize services.
-
-        
-        // Temporary
-        SaveManager.Instance.Load();
-
     }
     private void Start()
     {
-        // Temporary
-        SaveManager.Instance.Save();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.F5))
+            SaveManager.Instance.Save();
+        
+        if (Input.GetKeyDown(KeyCode.F8))
+            SaveManager.Instance.Load();
     }
 
     public static GameManager Instance { get; private set; } = null;

@@ -209,6 +209,9 @@ namespace Hierarchy
                 yield return GameManager.NewCoroutine(PopupController.Instance.GetApproval((choice) => { result = choice; }, "delete_hierarchy_element", elementName));
                 if (result == false) yield break;
 
+                ServiceManager.GetService<ISceneService>().DeletePrefab(element.GetComponent<HierarchyElement>().Prefab);
+                Destroy(element);
+
                 if (group == null)
                 {
                     foreach (var container in _hierarchyItems.Keys)
@@ -216,8 +219,6 @@ namespace Hierarchy
                         if (_hierarchyItems[container].Contains(element))
                         {
                             _hierarchyItems[container].Remove(element);
-                            ServiceManager.GetService<ISceneService>().DeletePrefab(element.GetComponent<HierarchyElement>().Prefab);
-                            Destroy(element);
                             GameManager.NewCoroutine(GroupContainerRefresh(container));
                             yield break;
                         }
@@ -227,8 +228,6 @@ namespace Hierarchy
                 else if (_hierarchyItems.ContainsKey(group))
                 {
                     _hierarchyItems[group].Remove(element);
-                    ServiceManager.GetService<ISceneService>().DeletePrefab(element.GetComponent<HierarchyElement>().Prefab);
-                    Destroy(element);
                     GameManager.NewCoroutine(GroupContainerRefresh(group));
                 }
                 

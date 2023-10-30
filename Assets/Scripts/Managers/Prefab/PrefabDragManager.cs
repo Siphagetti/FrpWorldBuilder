@@ -31,6 +31,7 @@ namespace Prefab
 
         private void StopDragging()
         {
+            if (SelectedObject != null) SelectedObject.GetComponent<Prefab>().Data.transform = SelectedObject.transform;
             _isDragging = false;
             RevealPanel();
         }
@@ -49,11 +50,11 @@ namespace Prefab
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, targetLayer)) SelectObject(hit.collider.gameObject);
-            else if (SelectedObject != null) DeselectObject();
+            else if (SelectedObject != null && !FindFirstObjectByType<CameraController>().IsUIClicked) DeselectObject();
 
         }
 
-        private void SelectObject(GameObject obj)
+        public void SelectObject(GameObject obj)
         {
             DontShineMesh(); // If there is a previously selected mesh, stop its shining.
 
@@ -69,10 +70,6 @@ namespace Prefab
         public void DeselectObject()
         {
             DontShineMesh();
-            SelectedObject.GetComponent<Prefab>().Data.transform = SelectedObject.transform;
-            // Temporary
-            SaveManager.Instance.Save();
-
             SelectedObject = null;
             _isDragging = false;
         }
