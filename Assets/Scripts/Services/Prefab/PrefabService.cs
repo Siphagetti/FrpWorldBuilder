@@ -78,6 +78,13 @@ namespace Prefab
             return new Response<(string, Prefab[])>() { Success = true, Result = (response.Result, prefabs) };
         }
 
+        public void NewCategory(string category)
+        {
+            var categoryFolderPath = Path.Combine(rootFolderPath, category);
+            if (Directory.Exists(categoryFolderPath)) Log.Logger.Log_Error("category_exists", category);
+            else Directory.CreateDirectory(categoryFolderPath);
+        }
+
         // Delete a category and its associated asset bundles
         public void DeleteCategory(string category)
         {
@@ -153,13 +160,6 @@ namespace Prefab
             bundle.Unload(false);
 
             return await Task.FromResult(new Response<string>() { Success = true, Result = bundleName });
-        }
-
-        // Create a new category folder
-        public void NewCategory(string categoryName)
-        {
-            var newCategoryPath = Path.Combine(rootFolderPath, categoryName);
-            Directory.CreateDirectory(newCategoryPath);
         }
 
         // Load prefabs into the scene based on prefab data

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -84,5 +85,51 @@ public struct SerializableTransform
         st.localScale = t.localScale;
 
         return st;
+    }
+}
+
+[Serializable]
+public class SerializableDictionary<TKey, TValue>
+{
+    [SerializeField]
+    private List<TKey> keys = new List<TKey>();
+
+    [SerializeField]
+    private List<TValue> values = new List<TValue>();
+
+    public int Count
+    {
+        get { return keys.Count; }
+    }
+
+    public TKey GetKeyAt(int index)
+    {
+        return keys[index];
+    }
+
+    public TValue GetValueAt(int index)
+    {
+        return values[index];
+    }
+
+    public void Add(TKey key, TValue value)
+    {
+        keys.Add(key);
+        values.Add(value);
+    }
+
+    public bool TryGetValue(TKey key, out TValue value)
+    {
+        int index = keys.IndexOf(key);
+        if (index != -1)
+        {
+            value = values[index];
+            return true;
+        }
+        else
+        {
+            value = default(TValue);
+            return false;
+        }
     }
 }

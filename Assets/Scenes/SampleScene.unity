@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 47324145}
   - component: {fileID: 47324144}
   m_Layer: 5
-  m_Name: BTN_Show
+  m_Name: BTN_Toggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -906,8 +906,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 1532193235}
-  m_Horizontal: 1
-  m_Vertical: 1
+  m_Horizontal: 0
+  m_Vertical: 0
   m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
@@ -1414,18 +1414,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb8d4cf4b20e639468aa75ec10f7a419, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _smoothSpeed: 0.125
-  _moveSpeed: 100
-  _fastMoveSpeed: 150
-  _distanceFromPrefab: 20
-  _heightAbovePrefab: 10
-  _rotationSpeed: 100
-  _mouseSensitivity: 1
-  _smoothRotation: 2
-  _minZoom: 20
-  _maxZoom: 60
-  _zoomSpeed: 2000
-  _fastZoomSpeed: 3000
+  smoothSpeed: 0.125
+  moveSpeed: 100
+  fastMoveSpeed: 150
+  distanceFromPrefab: 5
+  heightAbovePrefab: 2
+  rotationSpeed: 100
+  mouseSensitivity: 1
+  smoothRotation: 1
+  minZoom: 20
+  maxZoom: 60
+  zoomSpeed: 2000
+  fastZoomSpeed: 3000
 --- !u!1 &976315352
 GameObject:
   m_ObjectHideFlags: 0
@@ -2403,13 +2403,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2483017d5724b8b4390a9eccaad8e437, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hierarchyContent: {fileID: 1532193235}
-  _hierarchyGroupButtonPrefab: {fileID: 3610170407961369948, guid: 875dadd164a348f48a4bacdd826f8d4b, type: 3}
-  _hierarchyGroupContainerPrefab: {fileID: 2981803399797121397, guid: e83c559ef9efa1e44aeb97c064653289, type: 3}
-  _hierarchyElementPrefab: {fileID: 6346354699099498031, guid: c6bc582e8a8af4e4fb8cef3ed57cc8d8, type: 3}
-  _newGroupInputField: {fileID: 393444655}
-  _newGroupButton: {fileID: 937762394}
-  _hierarchyPanelToggleButton: {fileID: 47324144}
+  hierarchyContent: {fileID: 1532193235}
+  hierarchyGroupButtonPrefab: {fileID: 3610170407961369948, guid: 875dadd164a348f48a4bacdd826f8d4b, type: 3}
+  hierarchyGroupContainerPrefab: {fileID: 2981803399797121397, guid: e83c559ef9efa1e44aeb97c064653289, type: 3}
+  hierarchyElementPrefab: {fileID: 6346354699099498031, guid: c6bc582e8a8af4e4fb8cef3ed57cc8d8, type: 3}
+  newGroupInputField: {fileID: 393444655}
+  newGroupButton: {fileID: 937762394}
+  hierarchyPanelToggleButton: {fileID: 47324144}
 --- !u!1001 &6720710473970903461
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -24,6 +24,18 @@ namespace Hierarchy
             }
         }
 
+        // Add a hierarchy group to the current scene
+        public void AddHierarchyGroupToCurrentScene(string groupName)
+        {
+            CurrentScene.AddHierarchyGroup(groupName);
+        }
+
+        // Delete a hierarchu group from the current scene
+        public void DeleteHierarchyGroupToCurrentScene(string groupName)
+        {
+            CurrentScene.DeleteHierarchyGroup(groupName);
+        }
+
         // Add a prefab to the current scene
         public void AddPrefabToCurrentScene(Prefab.Prefab prefab)
         {
@@ -112,7 +124,6 @@ namespace Hierarchy
             base.Load(ref data);
 
             CurrentScene = new Scene(currentSceneName);
-            CurrentScene.Load();
 
             return Task.CompletedTask;
         }

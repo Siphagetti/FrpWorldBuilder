@@ -1,4 +1,5 @@
 ﻿using Prefab;
+using Save;
 using Services;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +31,8 @@ namespace Hierarchy
         private const string GroupButtonPrefix = "BTN_";
         private const string GroupContainerPrefix = "Container_";
 
+        public const string GroupTag = "group";
+
         // Dictionaries to manage hierarchy groups and items
 
         // Key: group button - Value: hierarchy item container
@@ -44,6 +47,7 @@ namespace Hierarchy
         {
             // Attach a click listener to the "New Group" button.
             newGroupButton.onClick.AddListener(CreateNewGroup);
+            HierarchyElement.HierarchyManager = this;
         }
 
         // Coroutine to handle creating a new group
@@ -78,7 +82,7 @@ namespace Hierarchy
                     else
                     {
                         // Create a new group and add it to the hierarchy.
-                        prefabService.NewCategory(newGroup);
+                        ServiceManager.GetService<ISceneService>().AddHierarchyGroupToCurrentScene(newGroup);
                         inputField.text = "";
                         newGroupInputField.SetActive(false);
                         CreateGroup(newGroup);
@@ -92,15 +96,19 @@ namespace Hierarchy
         }
 
         // Create a new group and add it to the hierarchy
-        private GameObject CreateGroup(string groupName)
+        public GameObject CreateGroup(string groupName)
         {
             // Instantiate a new group button and group container.
             var groupButton = Instantiate(hierarchyGroupButtonPrefab, hierarchyContent);
             groupButton.name = GroupButtonPrefix + groupName;
             groupButton.GetComponentInChildren<TMPro.TMP_Text>().text = groupName;
+            groupButton.tag = GroupTag;
+            groupButton.AddComponent<CanvasGroup>();
 
             var groupContainer = Instantiate(hierarchyGroupContainerPrefab, hierarchyContent);
             groupContainer.name = GroupContainerPrefix + groupName;
+            groupContainer.tag = GroupTag;
+            groupContainer.AddComponent<CanvasGroup>();
 
             // Attach a click listener to toggle the group container's visibility.
             groupButton.GetComponent<Button>().onClick.AddListener(() => groupContainer.SetActive(!groupContainer.activeSelf));
@@ -131,6 +139,8 @@ namespace Hierarchy
 
             var groupContainer = hierarchyGroups[groupButton];
 
+            ServiceManager.GetService<ISceneService>().AddHierarchyGroupToCurrentScene(groupButton.name.Replace(GroupButtonPrefix, ""));
+
             // Remove the group container and button from the dictionaries.
             hierarchyItems.Remove(groupContainer);
             hierarchyGroups.Remove(groupButton);
@@ -145,11 +155,12 @@ namespace Hierarchy
         {
             GameObject groupButton = null;
 
+            // If prefab has group.
             if (groupName != "")
             {
                 // Find the group button associated with the given group name, or create one if not found.
                 groupButton = hierarchyGroups.Keys.FirstOrDefault(g => g.GetComponentInChildren<TMPro.TMP_Text>().text == groupName);
-                if (groupButton == null) groupButton = CreateGroup(groupName);
+                if (groupButton == null) return;
             }
 
             // Instantiate a new hierarchy element and add it to the hierarchy.

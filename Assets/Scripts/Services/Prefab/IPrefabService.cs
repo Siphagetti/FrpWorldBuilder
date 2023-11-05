@@ -7,7 +7,7 @@ namespace Prefab
     internal interface IPrefabService : Services.IBaseService
     {
         public PrefabRepository GetRepository();
-        public void NewCategory(string categoryName);
+        public void NewCategory(string category);
         public void DeleteCategory(string category);
         public void DeleteAssetBundle(string category, string bundleName);
         public IEnumerable<string> GetCategories();

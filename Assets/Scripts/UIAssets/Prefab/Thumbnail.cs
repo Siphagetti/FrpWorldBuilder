@@ -67,9 +67,9 @@ namespace Prefab
             RectTransformUtility.ScreenPointToLocalPointInRectangle(OwnerUIPanelRect, Input.mousePosition, null, out localMousePosition);
 
             // Compare the y-coordinate to determine if the mouse is higher or lower
-            float elementHeight = OwnerUIPanelRect.rect.height;
+            float containerHeight = OwnerUIPanelRect.rect.height;
 
-            if (localMousePosition.y > elementHeight / 2)
+            if (localMousePosition.y > containerHeight / 2)
             {
                 // If the UI element was already hidden, return
                 if (_hideUI) return;

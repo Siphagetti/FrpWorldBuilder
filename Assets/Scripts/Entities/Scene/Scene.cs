@@ -20,7 +20,9 @@ namespace Hierarchy
         // Lists to store prefab data and the hierarchy structure
         public List<Prefab.Prefab> PrefabList { get; private set; } = new List<Prefab.Prefab>();
 
-        [SerializeField] private List<PrefabDTO> hierarchy = new List<PrefabDTO>();
+        [SerializeField] private List<string> hierarchyGroups = new();
+
+        [SerializeField] private List<PrefabDTO> prefabs = new List<PrefabDTO>();
 
         public Scene(string sceneName)
         {
@@ -30,6 +32,8 @@ namespace Hierarchy
 
             // Reset the hierarchy when creating a new scene
             UnityEngine.Object.FindFirstObjectByType<HierarchyManager>().ResetHierarchy();
+
+            Load();
         }
 
         // Add a prefab to the scene
@@ -37,14 +41,14 @@ namespace Hierarchy
         {
             prefab.transform.SetParent(root.transform);
             PrefabList.Add(prefab);
-            hierarchy.Add(prefab.Data);
+            prefabs.Add(prefab.Data);
         }
 
         // Delete a prefab from the scene
         public void DeletePrefab(Prefab.Prefab prefab)
         {
             PrefabList.Remove(prefab);
-            hierarchy.Remove(prefab.Data);
+            prefabs.Remove(prefab.Data);
             UnityEngine.Object.Destroy(prefab.gameObject);
         }
 
@@ -64,6 +68,19 @@ namespace Hierarchy
                 File.Delete(_jsonFilePath);
         }
 
+        public void AddHierarchyGroup(string groupName)
+        {
+            if (!hierarchyGroups.Contains(groupName))
+            {
+                hierarchyGroups.Add(groupName);
+            }
+        }
+
+        public void DeleteHierarchyGroup(string groupName)
+        {
+            hierarchyGroups.Remove(groupName);
+        }
+
         #region Save/Load
 
         // Save the scene to a JSON file
@@ -78,7 +95,7 @@ namespace Hierarchy
         }
 
         // Load the scene from a JSON file
-        public void Load()
+        private void Load()
         {
             if (File.Exists(_jsonFilePath))
             {
@@ -86,8 +103,14 @@ namespace Hierarchy
                 string jsonString = File.ReadAllText(_jsonFilePath);
                 JsonUtility.FromJsonOverwrite(jsonString, this);
 
+                // Load hierarchy gruops in the scene
+                foreach (var group in hierarchyGroups)
+                {
+                    UnityEngine.Object.FindFirstObjectByType<HierarchyManager>().CreateGroup(group);
+                }
+
                 // Load the prefabs into the scene from the hierarchy data
-                PrefabList = ServiceManager.GetService<IPrefabService>().LoadPrefabs(root.transform, hierarchy);
+                PrefabList = ServiceManager.GetService<IPrefabService>().LoadPrefabs(root.transform, prefabs);
             }
         }
 
